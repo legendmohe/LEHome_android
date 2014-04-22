@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">LEHome</string>
+    <string name="title_section1">控制</string>
+    <string name="title_section2">快捷方式</string>
+    <string name="title_section3">历史</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_example">Example action</string>
+    <string name="action_settings">设置</string>
+    
+    <string name="com_comfirm">确定</string>
+    <string name="com_cancel">取消</string>
+    
+    <string name="welcome">welcome!</string>
+    <string name="pref_sub_only">只收听当前用户</string>
+    <string name="pref_sub_only_summ">取消后显示所有信息</string>
+    <string name="pref_user_profile">连接</string>
+    <string name="pref_pub_address">本机绑定地址</string>
+    <string name="pref_sub_address">服务器地址</string>
+    <string name="pref_message_profile">消息</string>
+    <string name="pref_message_begin">消息头</string>
+    <string name="pref_message_end">消息尾</string>
+    
+    <string name="qs_default_input">开灯</string>
+    <string name="add_shortcut_item_summ">键入命令</string>
+
+    <string name="title_activity_settings">设置</string>
+    <string name="local_ip_item">本机ip</string>
+    <string name="add_shortcut_item">添加</string>
+</resources>

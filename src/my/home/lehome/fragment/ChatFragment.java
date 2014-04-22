@@ -15,12 +15,19 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.InputType;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -71,10 +78,12 @@ public class ChatFragment extends Fragment {
 			    if (actionId == EditorInfo.IME_ACTION_DONE) {
 			    	// Perform action on key press
 					String messageString = sendCmdEdittext.getText().toString();
-					MainActivity mainActivity = (MainActivity) getActivity();
-					new SendCommandAsyncTask(mainActivity).execute(messageString);
-					sendCmdEdittext.setText("");
-					scrollMyListViewToBottom();
+					if (!messageString.trim().equals("")) {
+						MainActivity mainActivity = (MainActivity) getActivity();
+						new SendCommandAsyncTask(mainActivity).execute(messageString);
+						sendCmdEdittext.setText("");
+						scrollMyListViewToBottom();
+					}
 			      return true;
 			    } else {
 			      return false;
@@ -82,7 +91,33 @@ public class ChatFragment extends Fragment {
 			  }
 
 			});
+		
+		registerForContextMenu(cmdListview);
         return rootView;
+    }
+    
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+            ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        if (v.getId() == cmdListview.getId()) {
+	        MenuInflater inflater = getActivity().getMenuInflater();
+	        inflater.inflate(R.menu.add_chat_item_to_shortcut, menu);
+		}
+    }
+    
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+          AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+          switch(item.getItemId()) {
+              case R.id.add_chat_item_to_shortcut:
+            	  String selectedString = adapter.getItem(info.position).content;
+            	  MainActivity activity = (MainActivity) getActivity();
+            	  activity.getShortcurFragment().addShortcut(selectedString);
+                  return true;
+              default:
+                    return super.onContextItemSelected(item);
+          }
     }
 
     @Override
@@ -92,8 +127,13 @@ public class ChatFragment extends Fragment {
     
     @Override
     public void onDetach() {
+    	InputMethodManager inputManager = 
+    	        (InputMethodManager) getActivity().
+    	            getSystemService(Context.INPUT_METHOD_SERVICE); 
+    	inputManager.hideSoftInputFromWindow(
+    	        getActivity().getCurrentFocus().getWindowToken(),
+    	        InputMethodManager.HIDE_NOT_ALWAYS); 
     	super.onDetach();
-    	sendCmdEdittext.setInputType(InputType.TYPE_NULL);
     };
     
     private void scrollMyListViewToBottom() {

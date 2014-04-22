@@ -107,4 +107,12 @@ public class ShortcurFragment extends ListFragment {
     	alert.show();
     	// see http://androidsnippets.com/prompt-user-input-with-an-alertdialog
 	}
+    
+    public boolean addShortcut(String content) {
+    	if (content == null || content.trim() == "") {
+    		return false;
+		}
+		this.adapter.add(content);
+		return true;
+	}
 }

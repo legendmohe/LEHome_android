@@ -54,7 +54,7 @@ public class ChatItemArrayAdapter extends ArrayAdapter<ChatItem> {
 		ChatItem chatItem = getItem(position);
 		chatTextView = (TextView) row.findViewById(R.id.chat_item);
 		chatTextView.setText(chatItem.content);
-		chatTextView.setBackgroundResource(!chatItem.isMe ? R.drawable.bubble_yellow : R.drawable.bubble_green);
+		chatTextView.setBackgroundResource(!chatItem.isMe ? R.drawable.chatfrom_bg : R.drawable.chatto_bg);
 		wrapper.setGravity(!chatItem.isMe ? Gravity.LEFT : Gravity.RIGHT);
 
 		return row;

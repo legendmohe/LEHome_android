@@ -20,30 +20,45 @@ public final class R {
          */
         public static final int activity_horizontal_margin=0x7f050000;
         public static final int activity_vertical_margin=0x7f050001;
+        public static final int font_size=0x7f050005;
+        public static final int item_horizontal_margin=0x7f050002;
+        public static final int item_vertical_margin=0x7f050003;
         /** 
          Per the design guidelines, navigation drawers should be between 240dp and 320dp:
          https://developer.android.com/design/patterns/navigation-drawer.html
     
          */
-        public static final int navigation_drawer_width=0x7f050002;
+        public static final int navigation_drawer_width=0x7f050004;
     }
     public static final class drawable {
-        public static final int bubble_green=0x7f020000;
-        public static final int bubble_yellow=0x7f020001;
-        public static final int drawer_shadow=0x7f020002;
-        public static final int ic_drawer=0x7f020003;
-        public static final int ic_launcher=0x7f020004;
+        public static final int bubble_dark=0x7f020000;
+        public static final int bubble_green=0x7f020001;
+        public static final int bubble_light=0x7f020002;
+        public static final int bubble_yellow=0x7f020003;
+        public static final int chat_bg_default=0x7f020004;
+        public static final int chatfrom_bg=0x7f020005;
+        public static final int chatfrom_bg_focused=0x7f020006;
+        public static final int chatfrom_bg_normal=0x7f020007;
+        public static final int chatfrom_bg_pressed=0x7f020008;
+        public static final int chatto_bg=0x7f020009;
+        public static final int chatto_bg_focused=0x7f02000a;
+        public static final int chatto_bg_normal=0x7f02000b;
+        public static final int chatto_bg_pressed=0x7f02000c;
+        public static final int drawer_shadow=0x7f02000d;
+        public static final int ic_drawer=0x7f02000e;
+        public static final int ic_launcher=0x7f02000f;
     }
     public static final class id {
         public static final int RelativeLayout1=0x7f090008;
-        public static final int action_example=0x7f09000b;
-        public static final int action_settings=0x7f090009;
-        public static final int add_shortcut_item=0x7f09000c;
+        public static final int action_example=0x7f09000c;
+        public static final int action_settings=0x7f09000a;
+        public static final int add_chat_item_to_shortcut=0x7f090009;
+        public static final int add_shortcut_item=0x7f09000d;
         public static final int chat_item=0x7f090007;
         public static final int chat_list=0x7f090003;
         public static final int container=0x7f090001;
         public static final int drawer_layout=0x7f090000;
-        public static final int local_ip_item=0x7f09000a;
+        public static final int local_ip_item=0x7f09000b;
         public static final int navigation_drawer=0x7f090002;
         public static final int send_cmd_edittext=0x7f090005;
         public static final int send_cmd_layout=0x7f090004;
@@ -57,35 +72,38 @@ public final class R {
         public static final int shortcut_fragment=0x7f030004;
     }
     public static final class menu {
-        public static final int global=0x7f080000;
-        public static final int main=0x7f080001;
-        public static final int shortcut=0x7f080002;
+        public static final int add_chat_item_to_shortcut=0x7f080000;
+        public static final int global=0x7f080001;
+        public static final int main=0x7f080002;
+        public static final int shortcut=0x7f080003;
     }
     public static final class string {
         public static final int action_example=0x7f060006;
-        public static final int action_settings=0x7f060007;
-        public static final int add_shortcut_item=0x7f060017;
-        public static final int add_shortcut_item_summ=0x7f060014;
+        public static final int action_settings=0x7f060008;
+        public static final int add_chat_item_to_shortcut=0x7f060016;
+        public static final int add_shortcut_item=0x7f060019;
+        public static final int add_shortcut_item_summ=0x7f060015;
         public static final int app_name=0x7f060000;
-        public static final int com_cancel=0x7f060009;
-        public static final int com_comfirm=0x7f060008;
-        public static final int local_ip_item=0x7f060016;
+        public static final int com_cancel=0x7f06000a;
+        public static final int com_comfirm=0x7f060009;
+        public static final int double_back_to_quit=0x7f060007;
+        public static final int local_ip_item=0x7f060018;
         public static final int navigation_drawer_close=0x7f060005;
         public static final int navigation_drawer_open=0x7f060004;
-        public static final int pref_message_begin=0x7f060011;
-        public static final int pref_message_end=0x7f060012;
-        public static final int pref_message_profile=0x7f060010;
-        public static final int pref_pub_address=0x7f06000e;
-        public static final int pref_sub_address=0x7f06000f;
-        public static final int pref_sub_only=0x7f06000b;
-        public static final int pref_sub_only_summ=0x7f06000c;
-        public static final int pref_user_profile=0x7f06000d;
-        public static final int qs_default_input=0x7f060013;
-        public static final int title_activity_settings=0x7f060015;
+        public static final int pref_message_begin=0x7f060012;
+        public static final int pref_message_end=0x7f060013;
+        public static final int pref_message_profile=0x7f060011;
+        public static final int pref_pub_address=0x7f06000f;
+        public static final int pref_sub_address=0x7f060010;
+        public static final int pref_sub_only=0x7f06000c;
+        public static final int pref_sub_only_summ=0x7f06000d;
+        public static final int pref_user_profile=0x7f06000e;
+        public static final int qs_default_input=0x7f060014;
+        public static final int title_activity_settings=0x7f060017;
         public static final int title_section1=0x7f060001;
         public static final int title_section2=0x7f060002;
         public static final int title_section3=0x7f060003;
-        public static final int welcome=0x7f06000a;
+        public static final int welcome=0x7f06000b;
     }
     public static final class style {
         /** 

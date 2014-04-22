@@ -14,9 +14,11 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/send_cmd_layout"
         android:layout_alignParentTop="true"
-        android:smoothScrollbar="true" 
         android:divider="@null"
-        android:dividerHeight="0dp">
+        android:dividerHeight="0dp"
+        android:listSelector="@android:color/transparent"
+        android:longClickable="true"
+        android:smoothScrollbar="true" >
 
     </ListView>
 

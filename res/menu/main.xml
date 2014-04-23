@@ -3,7 +3,7 @@
     tools:context="my.home.lehome.MainActivity" >
 
     <item
-        android:id="@+id/action_example"
+        android:id="@+id/voice_input"
         android:showAsAction="withText|ifRoom"
-        android:title="@string/action_example"/>
+        android:title="@string/voice_input"/>
 </menu>

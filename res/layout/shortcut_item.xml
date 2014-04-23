@@ -1,20 +1,21 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/wrapper"
+    android:id="@+id/shortcut_wrapper"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:gravity="right" >
 
     <TextView
-        android:id="@+id/chat_item"
+        android:id="@+id/shortcut_item"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:layout_margin="5dip"
-        android:background="@drawable/chatfrom_bg"
+        android:background="@drawable/chatto_bg"
         android:gravity="left|center"
         android:lineSpacingExtra="2dp"
         android:paddingLeft="@dimen/item_horizontal_margin"
-        android:textColor="@color/text_color"
+        android:textColor="@android:color/primary_text_light"
         android:textSize="@dimen/font_size" />
 
 </LinearLayout>

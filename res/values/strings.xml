@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    
+    <string name="msc_app_id">53561e75</string>
 
     <string name="app_name">LEHome</string>
     <string name="title_section1">控制</string>
@@ -7,12 +9,13 @@
     <string name="title_section3">历史</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="action_example">Example action</string>
+    <string name="voice_input">语音</string>
     <string name="double_back_to_quit">再次点击退出程序</string>
     <string name="action_settings">设置</string>
     
     <string name="com_comfirm">确定</string>
     <string name="com_cancel">取消</string>
+    <string name="com_exec">执行</string>
     
     <string name="welcome">welcome!</string>
     <string name="pref_sub_only">只收听当前用户</string>
@@ -27,8 +30,11 @@
     <string name="qs_default_input">开灯</string>
     <string name="add_shortcut_item_summ">键入命令</string>
     <string name="add_chat_item_to_shortcut">添加到快捷列表</string>
+    <string name="delete_shortcut_item">删除快捷方式</string>
 
     <string name="title_activity_settings">设置</string>
     <string name="local_ip_item">本机ip</string>
     <string name="add_shortcut_item">添加</string>
+    <string name="button_speech">启动识别</string>
+    <string name="msc_login_faild">讯飞语音云登陆失败</string>
 </resources>

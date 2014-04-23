@@ -1,12 +1,15 @@
 package my.home.lehome.asynctask;
 
+import java.util.Date;
+
 import my.home.lehome.activity.MainActivity;
 import my.home.lehome.adapter.ChatItemArrayAdapter;
-import my.home.lehome.model.ChatItem;
+import my.home.lehome.helper.DBHelper;
 import my.home.lehome.service.ConnectionService;
 
 import org.zeromq.ZMQ.Socket;
 
+import de.greenrobot.lehome.ChatItem;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -36,7 +39,15 @@ public class SendCommandAsyncTask extends AsyncTask<String, String, Boolean> {
     @Override
     protected void onPostExecute(Boolean result) {
         super.onPostExecute(result);
-        adapter.add(new ChatItem(true, cmdString));
+        if (result) {
+        	ChatItem newItem = new ChatItem();
+        	newItem.setContent(cmdString);
+        	newItem.setIsMe(true);
+        	newItem.setDate(new Date());
+        	adapter.add(newItem);
+            ((MainActivity)adapter.getContext()).getChatFragment().scrollMyListViewToBottom();
+        	DBHelper.addChatItem(newItem);
+		}
     }
 
 }

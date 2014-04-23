@@ -1,41 +1,48 @@
 package my.home.lehome.fragment;
 
+import de.greenrobot.lehome.Shortcut;
 import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
+import my.home.lehome.adapter.ShortcutArrayAdapter;
 import my.home.lehome.asynctask.SendCommandAsyncTask;
+import my.home.lehome.helper.DBHelper;
 import android.app.AlertDialog;
 import android.app.ListFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 
-public class ShortcurFragment extends ListFragment {
+public class ShortcutFragment extends ListFragment {
 	
-	private ArrayAdapter<String> adapter;
+	private ShortcutArrayAdapter adapter;
 	
     @Override
     public View onCreateView(LayoutInflater inflater,      
     		ViewGroup container, Bundle savedInstanceState) {             
         View rootView =  inflater.inflate(R.layout.shortcut_fragment, container, false); 
+        if (adapter == null) {
+        	adapter = new ShortcutArrayAdapter(getActivity(), R.layout.shortcut_item);
+        	adapter.setData(DBHelper.getAllShortcuts());
+		}
+        setListAdapter(adapter);
         return rootView;
     }
           
     @Override
     public void onCreate(Bundle savedInstanceState) {     
         super.onCreate(savedInstanceState);
-        if (adapter == null) {
-        	adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1);
-		}
-        setListAdapter(adapter);
     }     
     
     @Override
@@ -43,18 +50,48 @@ public class ShortcurFragment extends ListFragment {
         super.onActivityCreated(savedInstanceState);
         // Indicate that this fragment would like to influence the set of actions in the action bar.
         setHasOptionsMenu(true);
+		registerForContextMenu(getListView());
+    }
+    
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+            ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        if (v.getId() == getListView().getId()) {
+	        MenuInflater inflater = getActivity().getMenuInflater();
+	        inflater.inflate(R.menu.delete_shortcut_item, menu);
+		}
+    }
+    
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+          AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+          switch(item.getItemId()) {
+              case R.id.delete_shortcut_item:
+            	  Shortcut shortcut = adapter.getItem(info.position);
+            	  adapter.remove(shortcut);
+            	  adapter.notifyDataSetChanged();
+            	  DBHelper.deleteShortcut(shortcut.getId());
+                  return true;
+              default:
+                    return super.onContextItemSelected(item);
+          }
     }
     
     @Override
     public void onListItemClick(ListView parent, View v,      
     int position, long id)      
     {
-    	String value = adapter.getItem(position);
-        Toast.makeText(getActivity(),      
-            "You have selected " + value,      
-            Toast.LENGTH_SHORT).show();
+    	Shortcut shortcut = adapter.getItem(position);
+    	shortcut.setInvoke_count(shortcut.getInvoke_count() + 1);
+    	DBHelper.updateShortcut(shortcut);
+    	
         MainActivity mainActivity = (MainActivity) getActivity();
-		new SendCommandAsyncTask(mainActivity).execute(value);
+		new SendCommandAsyncTask(mainActivity).execute(shortcut.getContent());
+
+        Toast.makeText(getActivity(),      
+            getResources().getString(R.string.com_exec) + ":" + shortcut.getContent(),      
+            Toast.LENGTH_SHORT).show();
     }
     
     @Override
@@ -92,7 +129,7 @@ public class ShortcurFragment extends ListFragment {
 	    	public void onClick(DialogInterface dialog, int whichButton) {
 	    		String value = input.getText().toString();
 	    	  	if (value != null && !value.trim().equals("")) {
-					adapter.add(value);
+	    	  		addShortcut(value);
 				}
 	    	}
     	});
@@ -112,7 +149,12 @@ public class ShortcurFragment extends ListFragment {
     	if (content == null || content.trim() == "") {
     		return false;
 		}
-		this.adapter.add(content);
+    	Shortcut shortcut = new Shortcut();
+    	shortcut.setContent(content);
+    	shortcut.setInvoke_count(0);
+    	shortcut.setWeight(1.0);
+		this.adapter.add(shortcut);
+		DBHelper.addShortcut(shortcut);
 		return true;
 	}
 }

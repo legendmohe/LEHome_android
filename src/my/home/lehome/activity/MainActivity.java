@@ -1,10 +1,14 @@
 package my.home.lehome.activity;
 
+import com.iflytek.cloud.speech.SpeechUser;
+
 import my.home.lehome.R;
 import my.home.lehome.fragment.ChatFragment;
 import my.home.lehome.fragment.NavigationDrawerFragment;
 import my.home.lehome.fragment.SettingsFragment;
-import my.home.lehome.fragment.ShortcurFragment;
+import my.home.lehome.fragment.ShortcutFragment;
+import my.home.lehome.helper.CommonHelper;
+import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.MessageHelper;
 import my.home.lehome.helper.NetworkHelper;
 import my.home.lehome.service.ConnectionService;
@@ -25,6 +29,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.Toast;
 
 public class MainActivity extends Activity
@@ -37,7 +43,7 @@ public class MainActivity extends Activity
     private boolean doubleBackToExitPressedOnce;
     
     private ChatFragment chatFragment;
-    private ShortcurFragment shortcurFragment;
+    private ShortcutFragment shortcurFragment;
     private ConnectionService connectionService;
     private ServiceConnection connection = new ServiceConnection() {  
 		  
@@ -60,6 +66,9 @@ public class MainActivity extends Activity
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         
         mTitle = getTitle();
+        
+        DBHelper.initHelper(this);
+
         this.setupService();
 
         // Set up the drawer.
@@ -77,6 +86,7 @@ public class MainActivity extends Activity
     @Override
     protected void onDestroy() {
     	this.unbindService(connection);
+    	DBHelper.destory();
     	super.onDestroy();
     };
 
@@ -92,7 +102,7 @@ public class MainActivity extends Activity
 			break;
 		case 1:
 	    	if(shortcurFragment == null) {
-	    		shortcurFragment = new ShortcurFragment();
+	    		shortcurFragment = new ShortcutFragment();
 	    	}
 	    	fragment = shortcurFragment;
 			break;
@@ -233,7 +243,7 @@ public class MainActivity extends Activity
 		return chatFragment;
 	}
 
-	public ShortcurFragment getShortcurFragment() {
+	public ShortcutFragment getShortcurFragment() {
 		return shortcurFragment;
 	}
 

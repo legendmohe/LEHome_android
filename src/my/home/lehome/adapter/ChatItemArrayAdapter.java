@@ -18,12 +18,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class ChatItemArrayAdapter extends ArrayAdapter<ChatItem> {
 
 	private TextView chatTextView;
-	private LinearLayout wrapper;
+	private RelativeLayout wrapper;
 
 	@Override
 	public void add(ChatItem object) {
@@ -51,7 +52,7 @@ public class ChatItemArrayAdapter extends ArrayAdapter<ChatItem> {
 			row = inflater.inflate(R.layout.chat_item, parent, false);
 		}
 
-		wrapper = (LinearLayout) row.findViewById(R.id.wrapper);
+		wrapper = (RelativeLayout) row.findViewById(R.id.wrapper);
 		ChatItem chatItem = getItem(position);
 		chatTextView = (TextView) row.findViewById(R.id.chat_item);
 		chatTextView.setText(chatItem.getContent());

@@ -34,6 +34,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
@@ -54,6 +55,7 @@ public class ChatFragment extends Fragment {
 	public static final String TAG = ChatFragment.class.getName();
 	
 	private ChatItemArrayAdapter adapter;
+	private ProgressBar sendProgressBar;
 	public static Handler handler;
 	public static int FLAG = 1;
 	private boolean keyboard_open = false;
@@ -218,6 +220,9 @@ public class ChatFragment extends Fragment {
 			}
 		});
         
+        sendProgressBar = (ProgressBar) rootView.findViewById(R.id.send_msg_progressbar);
+        sendProgressBar.setVisibility(View.INVISIBLE);
+        
         scrollMyListViewToBottom();
         
         return rootView;
@@ -360,5 +365,9 @@ public class ChatFragment extends Fragment {
 			
 		});
 		iatDialog.show();
+	}
+
+	public ProgressBar getSendProgressBar() {
+		return sendProgressBar;
 	}
 }

@@ -1,15 +1,10 @@
 package my.home.lehome.activity;
 
-import com.iflytek.cloud.speech.SpeechUser;
-
 import my.home.lehome.R;
 import my.home.lehome.fragment.ChatFragment;
 import my.home.lehome.fragment.NavigationDrawerFragment;
-import my.home.lehome.fragment.SettingsFragment;
 import my.home.lehome.fragment.ShortcutFragment;
-import my.home.lehome.helper.CommonHelper;
 import my.home.lehome.helper.DBHelper;
-import my.home.lehome.helper.MessageHelper;
 import my.home.lehome.helper.NetworkHelper;
 import my.home.lehome.service.ConnectionService;
 import android.app.ActionBar;
@@ -24,13 +19,10 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.Toast;
 
 public class MainActivity extends Activity
@@ -212,8 +204,14 @@ public class MainActivity extends Activity
     	SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
     	ConnectionService.SUBSCRIBE_ADDRESS = mySharedPreferences.getString("pref_sub_address", "");
     	ConnectionService.PUBLISH_ADDRESS = mySharedPreferences.getString("pref_pub_address", "");
-    	ConnectionService.MESSAGE_BEGIN = mySharedPreferences.getString("pref_message_begin", "");
-    	ConnectionService.MESSAGE_END = mySharedPreferences.getString("pref_message_end", "");
+    	boolean auto_complete_cmd = mySharedPreferences.getBoolean("", false);
+    	if (!auto_complete_cmd) {
+    		ConnectionService.MESSAGE_BEGIN = mySharedPreferences.getString("pref_message_begin", "");
+    		ConnectionService.MESSAGE_END = mySharedPreferences.getString("pref_message_end", "");
+		}else {
+			ConnectionService.MESSAGE_BEGIN = "";
+    		ConnectionService.MESSAGE_END = "";
+		}
     }
     
     @Override

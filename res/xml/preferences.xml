@@ -11,11 +11,17 @@
                 android:key="pref_sub_address"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_message_profile" >
+        <CheckBoxPreference
+            android:key="pref_auto_add_begin_and_end"
+            android:title="@string/pref_auto_add_begin_and_end"
+            android:defaultValue="false" />
         <EditTextPreference
                 android:title="@string/pref_message_begin"
-                android:key="pref_message_begin"/>
+                android:key="pref_message_begin"
+                android:enabled="false" />
         <EditTextPreference
                 android:title="@string/pref_message_end"
-                android:key="pref_message_end"/>
+                android:key="pref_message_end"
+                android:enabled="false" />
     </PreferenceCategory>
 </PreferenceScreen>

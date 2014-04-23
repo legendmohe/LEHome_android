@@ -24,8 +24,9 @@
     <string name="pref_pub_address">本机绑定地址</string>
     <string name="pref_sub_address">服务器地址</string>
     <string name="pref_message_profile">消息</string>
-    <string name="pref_message_begin">消息头</string>
-    <string name="pref_message_end">消息尾</string>
+    <string name="pref_auto_add_begin_and_end">自动补全命令</string>
+    <string name="pref_message_begin">命令头</string>
+    <string name="pref_message_end">命令尾</string>
     
     <string name="qs_default_input">开灯</string>
     <string name="add_shortcut_item_summ">键入命令</string>

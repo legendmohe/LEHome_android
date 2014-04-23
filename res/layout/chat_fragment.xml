@@ -12,6 +12,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
+        android:layout_marginBottom="5dp"
         android:divider="@null"
         android:dividerHeight="0dp"
         android:listSelector="@android:color/transparent"
@@ -89,6 +90,20 @@
                 android:textColor="#eeeeee" />
 
         </RelativeLayout>
+
+        <ProgressBar
+            android:id="@+id/send_msg_progressbar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentTop="false"
+            android:layout_centerHorizontal="true"
+            android:layout_centerInParent="false"
+            android:layout_centerVertical="false"
+            android:layout_marginTop="-7dp"
+            android:indeterminate="true"
+            android:visibility="invisible" />
 
     </RelativeLayout>
 

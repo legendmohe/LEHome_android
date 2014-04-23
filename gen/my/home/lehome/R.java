@@ -63,25 +63,26 @@ public final class R {
         public static final int voicesearch_btnbg_pressed=0x7f02001a;
     }
     public static final class id {
-        public static final int RelativeLayout1=0x7f0a000a;
-        public static final int action_settings=0x7f0a000f;
-        public static final int add_chat_item_to_shortcut=0x7f0a000d;
-        public static final int add_shortcut_item=0x7f0a0012;
-        public static final int chat_item=0x7f0a0009;
+        public static final int RelativeLayout1=0x7f0a000b;
+        public static final int action_settings=0x7f0a0010;
+        public static final int add_chat_item_to_shortcut=0x7f0a000e;
+        public static final int add_shortcut_item=0x7f0a0013;
+        public static final int chat_item=0x7f0a000a;
         public static final int chat_list=0x7f0a0003;
         public static final int container=0x7f0a0001;
-        public static final int delete_shortcut_item=0x7f0a000e;
+        public static final int delete_shortcut_item=0x7f0a000f;
         public static final int drawer_layout=0x7f0a0000;
-        public static final int local_ip_item=0x7f0a0010;
+        public static final int local_ip_item=0x7f0a0011;
         public static final int navigation_drawer=0x7f0a0002;
         public static final int send_cmd_edittext=0x7f0a0007;
         public static final int send_cmd_layout=0x7f0a0004;
-        public static final int shortcut_item=0x7f0a000c;
-        public static final int shortcut_wrapper=0x7f0a000b;
+        public static final int send_msg_progressbar=0x7f0a0008;
+        public static final int shortcut_item=0x7f0a000d;
+        public static final int shortcut_wrapper=0x7f0a000c;
         public static final int speech_button=0x7f0a0006;
         public static final int switch_input_button=0x7f0a0005;
-        public static final int voice_input=0x7f0a0011;
-        public static final int wrapper=0x7f0a0008;
+        public static final int voice_input=0x7f0a0012;
+        public static final int wrapper=0x7f0a0009;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
@@ -100,31 +101,32 @@ public final class R {
     }
     public static final class string {
         public static final int action_settings=0x7f070009;
-        public static final int add_chat_item_to_shortcut=0x7f070018;
-        public static final int add_shortcut_item=0x7f07001c;
-        public static final int add_shortcut_item_summ=0x7f070017;
+        public static final int add_chat_item_to_shortcut=0x7f070019;
+        public static final int add_shortcut_item=0x7f07001d;
+        public static final int add_shortcut_item_summ=0x7f070018;
         public static final int app_name=0x7f070001;
-        public static final int button_speech=0x7f07001d;
+        public static final int button_speech=0x7f07001e;
         public static final int com_cancel=0x7f07000b;
         public static final int com_comfirm=0x7f07000a;
         public static final int com_exec=0x7f07000c;
-        public static final int delete_shortcut_item=0x7f070019;
+        public static final int delete_shortcut_item=0x7f07001a;
         public static final int double_back_to_quit=0x7f070008;
-        public static final int local_ip_item=0x7f07001b;
+        public static final int local_ip_item=0x7f07001c;
         public static final int msc_app_id=0x7f070000;
-        public static final int msc_login_faild=0x7f07001e;
+        public static final int msc_login_faild=0x7f07001f;
         public static final int navigation_drawer_close=0x7f070006;
         public static final int navigation_drawer_open=0x7f070005;
-        public static final int pref_message_begin=0x7f070014;
-        public static final int pref_message_end=0x7f070015;
+        public static final int pref_auto_add_begin_and_end=0x7f070014;
+        public static final int pref_message_begin=0x7f070015;
+        public static final int pref_message_end=0x7f070016;
         public static final int pref_message_profile=0x7f070013;
         public static final int pref_pub_address=0x7f070011;
         public static final int pref_sub_address=0x7f070012;
         public static final int pref_sub_only=0x7f07000e;
         public static final int pref_sub_only_summ=0x7f07000f;
         public static final int pref_user_profile=0x7f070010;
-        public static final int qs_default_input=0x7f070016;
-        public static final int title_activity_settings=0x7f07001a;
+        public static final int qs_default_input=0x7f070017;
+        public static final int title_activity_settings=0x7f07001b;
         public static final int title_section1=0x7f070002;
         public static final int title_section2=0x7f070003;
         public static final int title_section3=0x7f070004;

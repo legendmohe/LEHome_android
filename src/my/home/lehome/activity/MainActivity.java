@@ -186,11 +186,11 @@ public class MainActivity extends Activity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	super.onActivityResult(requestCode, resultCode, data);
+    	String old_sub_address = ConnectionService.SUBSCRIBE_ADDRESS;
+    	String old_pub_address = ConnectionService.PUBLISH_ADDRESS;
     	loadPref();
-    	String new_sub_address = ConnectionService.SUBSCRIBE_ADDRESS;
-    	String new_pub_address = ConnectionService.PUBLISH_ADDRESS;
-    	if (!new_sub_address.equals(ConnectionService.SUBSCRIBE_ADDRESS)
-    			|| !new_pub_address.equals(ConnectionService.PUBLISH_ADDRESS)) {
+    	if (!old_sub_address.equals(ConnectionService.SUBSCRIBE_ADDRESS)
+    			|| !old_pub_address.equals(ConnectionService.PUBLISH_ADDRESS)) {
     		Intent bindIntent = new Intent(this, ConnectionService.class);  
         	this.unbindService(connection);;
         	this.bindService(bindIntent, connection, Context.BIND_AUTO_CREATE);

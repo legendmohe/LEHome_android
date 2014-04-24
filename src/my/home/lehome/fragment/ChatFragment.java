@@ -3,7 +3,6 @@ package my.home.lehome.fragment;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
 import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
 import my.home.lehome.adapter.ChatItemArrayAdapter;
@@ -12,12 +11,14 @@ import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.util.JsonParser;
 import android.R.integer;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -41,7 +42,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
-
 import com.iflytek.cloud.speech.RecognizerResult;
 import com.iflytek.cloud.speech.SpeechConstant;
 import com.iflytek.cloud.speech.SpeechError;
@@ -50,7 +50,6 @@ import com.iflytek.cloud.speech.SpeechRecognizer;
 import com.iflytek.cloud.speech.SpeechUser;
 import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
-
 import de.greenrobot.lehome.ChatItem;
 import de.greenrobot.lehome.Shortcut;
 
@@ -59,6 +58,7 @@ public class ChatFragment extends Fragment {
 	
 	private ChatItemArrayAdapter adapter;
 	private ProgressBar sendProgressBar;
+	private Toast mToast;
 	public static Handler handler;
 	public static int FLAG = 1;
 	private int topVisibleIndex;
@@ -74,7 +74,8 @@ public class ChatFragment extends Fragment {
 	public static int CHATITEM_LOAD_LIMIT = 20;
 	public static final int CHATITEM_LOWEST_INDEX = 1;
 	
-    @Override
+    @SuppressLint("HandlerLeak")
+	@Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	setRetainInstance(true);
@@ -105,8 +106,7 @@ public class ChatFragment extends Fragment {
 	    		@Override
 	    		public void onCompleted(SpeechError error) {
 	    			if(error != null) {
-	    				Toast.makeText(getActivity(), getString(R.string.msc_login_faild)
-	    						, Toast.LENGTH_SHORT).show();				
+	    				showTip(getString(R.string.msc_login_faild));			
 	    			}
 	    		}
 	
@@ -120,7 +120,8 @@ public class ChatFragment extends Fragment {
 	    });
     };
 
-    @Override
+    @SuppressLint("ShowToast")
+	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.chat_fragment, container, false);
@@ -237,6 +238,8 @@ public class ChatFragment extends Fragment {
         sendProgressBar = (ProgressBar) rootView.findViewById(R.id.send_msg_progressbar);
         sendProgressBar.setVisibility(View.INVISIBLE);
         
+        mToast = Toast.makeText(getActivity(), "", Toast.LENGTH_SHORT);
+        
         scrollMyListViewToBottom();
         
         return rootView;
@@ -311,10 +314,13 @@ public class ChatFragment extends Fragment {
     				getActivity().getCurrentFocus().getWindowToken(),
     				InputMethodManager.HIDE_NOT_ALWAYS); 
 		}
+    	
+    	mToast.cancel();
     	cancelRecognize();
     	if (null != iatDialog) {
 			iatDialog.cancel();
 		}
+    	
     	View rootView = getView();
     	rootView.getViewTreeObserver().removeOnGlobalLayoutListener(keyboardListener);
     	super.onDestroyView();
@@ -329,6 +335,15 @@ public class ChatFragment extends Fragment {
     public void onDetach() {
     	super.onDetach();
     };
+    
+    private void showTip(String str)
+	{
+		if(!TextUtils.isEmpty(str))
+		{
+			mToast.setText(str);
+			mToast.show();
+		}
+	}
     
     public void scrollMyListViewToBottom() {
     	cmdListview.post(new Runnable() {

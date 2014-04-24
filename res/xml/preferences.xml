@@ -3,11 +3,11 @@
     <PreferenceCategory android:title="@string/pref_user_profile" >
         <EditTextPreference
                 android:title="@string/pref_pub_address"
-                android:defaultValue="tcp://*:8000"
+                android:defaultValue="http://192.168.1.102:8002"
                 android:key="pref_pub_address"/>
         <EditTextPreference
                 android:title="@string/pref_sub_address"
-                android:defaultValue="tcp://192.168.1.101:9000"
+                android:defaultValue="tcp://192.168.1.102:9000"
                 android:key="pref_sub_address"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_message_profile" >

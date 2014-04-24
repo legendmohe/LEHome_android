@@ -1,14 +1,17 @@
 package my.home.lehome.fragment;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
 import my.home.lehome.adapter.ChatItemArrayAdapter;
+import my.home.lehome.asynctask.LoadMoreChatItemAsyncTask;
 import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.util.JsonParser;
+import android.R.integer;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
@@ -58,6 +61,7 @@ public class ChatFragment extends Fragment {
 	private ProgressBar sendProgressBar;
 	public static Handler handler;
 	public static int FLAG = 1;
+	private int topVisibleIndex;
 	private boolean keyboard_open = false;
 	private boolean inSpeechMode = false;
 	private OnGlobalLayoutListener keyboardListener;
@@ -67,6 +71,8 @@ public class ChatFragment extends Fragment {
 	private RecognizerDialog iatDialog;
 	private SpeechRecognizer iatRecognizer;
 	
+	public static int CHATITEM_LOAD_LIMIT = 20;
+	public static final int CHATITEM_LOWEST_INDEX = 1;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -122,8 +128,11 @@ public class ChatFragment extends Fragment {
         cmdListview = (ListView) rootView.findViewById(R.id.chat_list);
         if (adapter == null) {
         	adapter = new ChatItemArrayAdapter(this.getActivity(), R.layout.chat_item);
-        	List<ChatItem> chatItems = DBHelper.getAllChatItems();
-        	adapter.setData(chatItems);
+        	List<ChatItem> chatItems = DBHelper.loadLatest(CHATITEM_LOAD_LIMIT);
+        	if (chatItems != null) {
+        		Collections.reverse(chatItems); // reverse descend items
+        		adapter.setData(chatItems);
+			}
 		}
         cmdListview.setAdapter(adapter);
 
@@ -155,12 +164,17 @@ public class ChatFragment extends Fragment {
 							inputManager.hideSoftInputFromWindow(
 									getActivity().getCurrentFocus().getWindowToken(),
 									InputMethodManager.HIDE_NOT_ALWAYS); 
+				}else if(scrollState == OnScrollListener.SCROLL_STATE_IDLE
+						&& topVisibleIndex == 0
+						&& adapter.getItem(0).getId() > CHATITEM_LOWEST_INDEX) {
+					new LoadMoreChatItemAsyncTask(ChatFragment.this).execute(CHATITEM_LOAD_LIMIT);
 				}
 			}
 			
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem,
 					int visibleItemCount, int totalItemCount) {
+				topVisibleIndex = firstVisibleItem;
 			}
 		});
     	keyboardListener = (new OnGlobalLayoutListener() {
@@ -265,6 +279,11 @@ public class ChatFragment extends Fragment {
             	  }else{
             		  activity.getShortcurFragment().addShortcut(selectedString);
             	  }
+                  return true;
+              case R.id.resend_item:
+            	  String resendString = adapter.getItem(info.position).getContent();
+            	  MainActivity mainActivity = (MainActivity) getActivity();
+            	  new SendCommandAsyncTask(mainActivity).execute(resendString);
                   return true;
               case R.id.voice_input:
             	  showIatDialog();

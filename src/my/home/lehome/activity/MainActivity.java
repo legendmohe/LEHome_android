@@ -4,6 +4,7 @@ import my.home.lehome.R;
 import my.home.lehome.fragment.ChatFragment;
 import my.home.lehome.fragment.NavigationDrawerFragment;
 import my.home.lehome.fragment.ShortcutFragment;
+import my.home.lehome.helper.CommonHelper;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.NetworkHelper;
 import my.home.lehome.service.ConnectionService;
@@ -202,12 +203,18 @@ public class MainActivity extends Activity
        
     private void loadPref(){
     	SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-    	ConnectionService.SUBSCRIBE_ADDRESS = mySharedPreferences.getString("pref_sub_address", "");
-    	ConnectionService.PUBLISH_ADDRESS = mySharedPreferences.getString("pref_pub_address", "");
-    	boolean auto_complete_cmd = mySharedPreferences.getBoolean("", false);
-    	if (!auto_complete_cmd) {
+    	ConnectionService.SUBSCRIBE_ADDRESS = mySharedPreferences.getString("pref_sub_address", "tcp://192.168.1.102:9000");
+    	ConnectionService.PUBLISH_ADDRESS = mySharedPreferences.getString("pref_pub_address", "http://192.168.1.102:8002");
+    	boolean auto_complete_cmd = mySharedPreferences.getBoolean("pref_auto_add_begin_and_end", false);
+    	if (auto_complete_cmd) {
     		ConnectionService.MESSAGE_BEGIN = mySharedPreferences.getString("pref_message_begin", "");
     		ConnectionService.MESSAGE_END = mySharedPreferences.getString("pref_message_end", "");
+    		if (ConnectionService.MESSAGE_BEGIN.endsWith("/")) {
+				ConnectionService.MESSAGE_BEGIN = CommonHelper.removeLastChar(ConnectionService.MESSAGE_BEGIN);
+			}
+    		if (ConnectionService.MESSAGE_END.endsWith("/")) {
+    			ConnectionService.MESSAGE_END = CommonHelper.removeLastChar(ConnectionService.MESSAGE_END);
+    		}
 		}else {
 			ConnectionService.MESSAGE_BEGIN = "";
     		ConnectionService.MESSAGE_END = "";

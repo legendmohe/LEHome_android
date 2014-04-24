@@ -17,6 +17,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -24,7 +26,6 @@ import android.widget.TextView;
 public class ChatItemArrayAdapter extends ArrayAdapter<ChatItem> {
 
 	private TextView chatTextView;
-	private RelativeLayout wrapper;
 
 	@Override
 	public void add(ChatItem object) {
@@ -52,11 +53,19 @@ public class ChatItemArrayAdapter extends ArrayAdapter<ChatItem> {
 			row = inflater.inflate(R.layout.chat_item, parent, false);
 		}
 
-		wrapper = (RelativeLayout) row.findViewById(R.id.wrapper);
+		RelativeLayout wrapper = (RelativeLayout) row.findViewById(R.id.wrapper);
 		ChatItem chatItem = getItem(position);
 		chatTextView = (TextView) row.findViewById(R.id.chat_item);
 		chatTextView.setText(chatItem.getContent());
 		chatTextView.setBackgroundResource(!chatItem.getIsMe() ? R.drawable.chatfrom_bg : R.drawable.chatto_bg);
+		
+		ImageView resend = (ImageView) row.findViewById(R.id.resend_imageview);
+		if (chatItem.getSucceed() || !chatItem.getIsMe()) {
+			resend.setVisibility(View.GONE);
+		}else {
+			resend.setVisibility(View.VISIBLE);
+		}
+		
 		wrapper.setGravity(!chatItem.getIsMe() ? Gravity.LEFT : Gravity.RIGHT);
 
 		return row;

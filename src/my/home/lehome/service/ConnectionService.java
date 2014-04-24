@@ -30,7 +30,7 @@ public class ConnectionService extends Service {
 	private static final int NOTIFICATION_ID = 1;
 	
 	private final LocalBinder subscribeBinder = new LocalBinder();
-	private Socket sendMsgSocket;
+//	private Socket sendMsgSocket;
 	private Socket recvMsgSocket;
 	private Thread connectionThread;
 	private boolean stopRunning;
@@ -65,12 +65,16 @@ public class ConnectionService extends Service {
         Log.d(TAG, "onCreate() executed");
 	}
 	
-	public Socket getSendMsgSocket() {
-		return sendMsgSocket;
-	}
+//	public Socket getSendMsgSocket() {
+//		return sendMsgSocket;
+//	}
 	
 	public static String getFormatMessage(String content) {
 		return ConnectionService.MESSAGE_BEGIN + content + ConnectionService.MESSAGE_END;
+	}
+	
+	public static String getFormatMessageURL(String content) {
+		return ConnectionService.PUBLISH_ADDRESS + "/cmd/" + content;
 	}
 
 	@Override
@@ -109,8 +113,8 @@ public class ConnectionService extends Service {
         @Override
         public void run() {
         	Context msgContext = ZMQ.context(1);
-    		sendMsgSocket = msgContext.socket(ZMQ.PUB);
-    		sendMsgSocket.bind(ConnectionService.PUBLISH_ADDRESS);
+//    		sendMsgSocket = msgContext.socket(ZMQ.PUB);
+//    		sendMsgSocket.bind(ConnectionService.PUBLISH_ADDRESS);
         	recvMsgSocket = msgContext.socket(ZMQ.SUB);
         	recvMsgSocket.connect(SUBSCRIBE_ADDRESS);
         	recvMsgSocket.subscribe("".getBytes());
@@ -118,6 +122,7 @@ public class ConnectionService extends Service {
         	Poller poller = new Poller(1);
         	poller.register(recvMsgSocket, Poller.POLLIN);
         	
+        	stopRunning = false;
             while(!stopRunning) {
             	try {
             		poller.poll(1000);
@@ -134,7 +139,7 @@ public class ConnectionService extends Service {
 				}
             }
             recvMsgSocket.close();
-            sendMsgSocket.close();
+//            sendMsgSocket.close();
             Log.d(TAG, "thread stop......");
         }
     }

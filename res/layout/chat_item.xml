@@ -9,8 +9,9 @@
         android:id="@+id/chat_item"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="false"
         android:layout_margin="5dip"
         android:background="@drawable/chatto_bg"
         android:gravity="center_vertical"
@@ -18,5 +19,16 @@
         android:paddingLeft="@dimen/item_horizontal_margin"
         android:textColor="@color/text_color"
         android:textSize="@dimen/font_size" />
+
+    <ImageView
+        android:id="@+id/resend_imageview"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/chat_item"
+        android:background="@drawable/resend_bg"
+        android:clickable="false"
+        android:focusable="false" />
 
 </RelativeLayout>

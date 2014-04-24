@@ -27,6 +27,7 @@ public class ShortcutArrayAdapter extends ArrayAdapter<Shortcut> {
 	        for (Shortcut item : items)
 	            add(item);
 	    }
+	    setNotifyOnChange(true);
 	    notifyDataSetChanged();
 	}
 	

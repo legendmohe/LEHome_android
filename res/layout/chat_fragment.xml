@@ -22,6 +22,16 @@
 
     </ListView>
 
+    <ProgressBar
+        android:id="@+id/load_more_progressbar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="-7dp"
+        android:indeterminate="true"
+        android:visibility="invisible" />
+
     <RelativeLayout
         android:id="@+id/send_cmd_layout"
         android:layout_width="fill_parent"

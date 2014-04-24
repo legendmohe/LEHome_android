@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import de.greenrobot.dao.AbstractDaoMaster;
 import de.greenrobot.dao.identityscope.IdentityScopeType;
+
 import de.greenrobot.lehome.ChatItemDao;
 import de.greenrobot.lehome.ShortcutDao;
 

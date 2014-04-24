@@ -7,6 +7,7 @@ import android.util.Log;
 import de.greenrobot.dao.query.DeleteQuery;
 import de.greenrobot.dao.query.QueryBuilder;
 import de.greenrobot.lehome.ChatItem;
+import de.greenrobot.lehome.ChatItemDao;
 import de.greenrobot.lehome.DaoMaster;
 import de.greenrobot.lehome.DaoMaster.OpenHelper;
 import de.greenrobot.lehome.DaoSession;
@@ -51,6 +52,31 @@ public class DBHelper {
 	
 	public static List<ChatItem> getAllChatItems() {
 		return getDaoSession().getChatItemDao().loadAll();
+	}
+	
+	public static List<ChatItem> loadLatest(int limit) {
+		if (limit <= 0) {
+			Log.w(TAG, "loadAfter invaild limit.");
+			return null;
+		}
+		QueryBuilder<ChatItem> queryBuilder = getDaoSession().getChatItemDao().queryBuilder();
+		return queryBuilder
+				.orderDesc(ChatItemDao.Properties.Id)
+				.limit(limit)
+				.list();
+	}
+	
+	public static List<ChatItem> loadBefore(long id, int limit) {
+		if (limit <= 0) {
+			Log.w(TAG, "loadAfter invaild limit.");
+			return null;
+		}
+		QueryBuilder<ChatItem> queryBuilder = getDaoSession().getChatItemDao().queryBuilder();
+		return queryBuilder
+				.where(ChatItemDao.Properties.Id.lt(id))
+				.orderDesc(ChatItemDao.Properties.Id)
+				.limit(limit)
+				.list();
 	}
 	
 	public static void addShortcut(Shortcut shortcut) {

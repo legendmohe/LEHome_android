@@ -9,7 +9,8 @@ public class ChatItem {
     private Long id;
     /** Not-null value. */
     private String content;
-    private Boolean isMe;
+    private boolean isMe;
+    private boolean succeed;
     private java.util.Date date;
 
     public ChatItem() {
@@ -19,10 +20,11 @@ public class ChatItem {
         this.id = id;
     }
 
-    public ChatItem(Long id, String content, Boolean isMe, java.util.Date date) {
+    public ChatItem(Long id, String content, boolean isMe, boolean succeed, java.util.Date date) {
         this.id = id;
         this.content = content;
         this.isMe = isMe;
+        this.succeed = succeed;
         this.date = date;
     }
 
@@ -44,12 +46,20 @@ public class ChatItem {
         this.content = content;
     }
 
-    public Boolean getIsMe() {
+    public boolean getIsMe() {
         return isMe;
     }
 
-    public void setIsMe(Boolean isMe) {
+    public void setIsMe(boolean isMe) {
         this.isMe = isMe;
+    }
+
+    public boolean getSucceed() {
+        return succeed;
+    }
+
+    public void setSucceed(boolean succeed) {
+        this.succeed = succeed;
     }
 
     public java.util.Date getDate() {

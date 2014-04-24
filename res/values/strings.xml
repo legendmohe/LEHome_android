@@ -16,6 +16,7 @@
     <string name="com_comfirm">确定</string>
     <string name="com_cancel">取消</string>
     <string name="com_exec">执行</string>
+    <string name="com_resend">再次发送</string>
     
     <string name="welcome">welcome!</string>
     <string name="pref_sub_only">只收听当前用户</string>

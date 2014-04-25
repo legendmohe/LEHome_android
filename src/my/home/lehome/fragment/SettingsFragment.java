@@ -56,8 +56,11 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
     {
-        //IT NEVER GETS IN HERE!
         if (key.equals("pref_message_begin") || key.equals("pref_message_end"))
+        {
+            Preference exercisesPref = findPreference(key);
+            exercisesPref.setSummary(sharedPreferences.getString(key, ""));
+        }else if (key.equals("pref_pub_address") || key.equals("pref_sub_address"))
         {
             Preference exercisesPref = findPreference(key);
             exercisesPref.setSummary(sharedPreferences.getString(key, ""));

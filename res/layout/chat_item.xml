@@ -1,34 +1,54 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/wrapper"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:layout_gravity="right"
     android:gravity="right" >
 
     <TextView
-        android:id="@+id/chat_item"
+        android:id="@+id/date_textview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="false"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="false"
-        android:layout_margin="5dip"
-        android:background="@drawable/chatto_bg"
-        android:gravity="center_vertical"
-        android:lineSpacingExtra="2dp"
-        android:paddingLeft="@dimen/item_horizontal_margin"
-        android:textColor="@color/text_color"
-        android:textSize="@dimen/font_size" />
+        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="false"
+        android:layout_centerVertical="false"
+        android:layout_marginTop="5dp"
+        android:shadowColor="#ffffff"
+        android:shadowDx="1"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="#999999"
+        android:textSize="12sp" />
 
-    <ImageView
-        android:id="@+id/resend_imageview"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_centerVertical="true"
-        android:layout_toLeftOf="@+id/chat_item"
-        android:background="@drawable/resend_bg"
-        android:clickable="false"
-        android:focusable="false" />
+    <RelativeLayout
+        android:id="@+id/wrapper"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/date_textview"
+        android:gravity="right|center|center_horizontal" >
+
+        <TextView
+            android:id="@+id/chat_item"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"
+            android:layout_toRightOf="@+id/resend_imageview"
+            android:background="@drawable/chatto_bg"
+            android:gravity="center_vertical"
+            android:lineSpacingExtra="2dp"
+            android:paddingLeft="@dimen/item_horizontal_margin"
+            android:textColor="@color/text_color"
+            android:textSize="@dimen/font_size" />
+
+        <ImageView
+            android:id="@+id/resend_imageview"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_centerVertical="true"
+            android:background="@drawable/resend_bg"
+            android:clickable="false"
+            android:focusable="false" />
+
+    </RelativeLayout>
 
 </RelativeLayout>

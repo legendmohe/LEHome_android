@@ -9,6 +9,7 @@ import my.home.lehome.helper.DBHelper;
 import de.greenrobot.lehome.ChatItem;
 import android.os.AsyncTask;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 
 public class LoadMoreChatItemAsyncTask extends
@@ -45,6 +46,10 @@ public class LoadMoreChatItemAsyncTask extends
 		}
 		adapter.setNotifyOnChange(true);
 		adapter.notifyDataSetChanged();
+		
+		ListView listView = (ListView) fragment.getView().findViewById(R.id.chat_list);
+		listView.setSelection(result.size());
+		
 		ProgressBar progressBar = (ProgressBar) fragment.getActivity().findViewById(R.id.load_more_progressbar);
 		progressBar.setVisibility(View.INVISIBLE);
 		super.onPostExecute(result);

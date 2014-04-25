@@ -66,29 +66,30 @@ public final class R {
         public static final int voicesearch_btnbg_pressed=0x7f02001d;
     }
     public static final class id {
-        public static final int RelativeLayout1=0x7f0a000d;
-        public static final int action_settings=0x7f0a0013;
-        public static final int add_chat_item_to_shortcut=0x7f0a0010;
-        public static final int add_shortcut_item=0x7f0a0016;
-        public static final int chat_item=0x7f0a000b;
+        public static final int RelativeLayout1=0x7f0a000e;
+        public static final int action_settings=0x7f0a0014;
+        public static final int add_chat_item_to_shortcut=0x7f0a0011;
+        public static final int add_shortcut_item=0x7f0a0017;
+        public static final int chat_item=0x7f0a000c;
         public static final int chat_list=0x7f0a0003;
         public static final int container=0x7f0a0001;
-        public static final int delete_shortcut_item=0x7f0a0012;
+        public static final int date_textview=0x7f0a000a;
+        public static final int delete_shortcut_item=0x7f0a0013;
         public static final int drawer_layout=0x7f0a0000;
         public static final int load_more_progressbar=0x7f0a0005;
-        public static final int local_ip_item=0x7f0a0014;
+        public static final int local_ip_item=0x7f0a0015;
         public static final int navigation_drawer=0x7f0a0002;
-        public static final int resend_imageview=0x7f0a000c;
-        public static final int resend_item=0x7f0a0011;
+        public static final int resend_imageview=0x7f0a000d;
+        public static final int resend_item=0x7f0a0012;
         public static final int send_cmd_edittext=0x7f0a0008;
         public static final int send_cmd_layout=0x7f0a0004;
         public static final int send_msg_progressbar=0x7f0a0009;
-        public static final int shortcut_item=0x7f0a000f;
-        public static final int shortcut_wrapper=0x7f0a000e;
+        public static final int shortcut_item=0x7f0a0010;
+        public static final int shortcut_wrapper=0x7f0a000f;
         public static final int speech_button=0x7f0a0007;
         public static final int switch_input_button=0x7f0a0006;
-        public static final int voice_input=0x7f0a0015;
-        public static final int wrapper=0x7f0a000a;
+        public static final int voice_input=0x7f0a0016;
+        public static final int wrapper=0x7f0a000b;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;

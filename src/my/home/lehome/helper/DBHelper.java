@@ -80,11 +80,20 @@ public class DBHelper {
 	}
 	
 	public static void addShortcut(Shortcut shortcut) {
-		getDaoSession().getShortcutDao().insert(shortcut);
+		if (!hasShortcut(shortcut)) {
+			getDaoSession().getShortcutDao().insert(shortcut);
+		}
 	}
 	
 	public static void updateShortcut(Shortcut shortcut) {
 		getDaoSession().getShortcutDao().update(shortcut);
+	}
+	
+	public static boolean hasShortcut(Shortcut shortcut) {
+		QueryBuilder<ChatItem> queryBuilder = getDaoSession().getChatItemDao().queryBuilder();
+		queryBuilder.where(ChatItemDao.Properties.Content.eq(shortcut.getContent()))
+					.limit(1);
+		return queryBuilder.buildCount().count() > 0 ? true : false;
 	}
 
 	public static List<Shortcut> getAllShortcuts() {

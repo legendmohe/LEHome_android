@@ -3,12 +3,14 @@ package my.home.lehome.fragment;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
 import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
 import my.home.lehome.adapter.ChatItemArrayAdapter;
 import my.home.lehome.asynctask.LoadMoreChatItemAsyncTask;
 import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
+import my.home.lehome.service.ConnectionService;
 import my.home.lehome.util.JsonParser;
 import android.R.integer;
 import android.annotation.SuppressLint;
@@ -42,6 +44,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
+
 import com.iflytek.cloud.speech.RecognizerResult;
 import com.iflytek.cloud.speech.SpeechConstant;
 import com.iflytek.cloud.speech.SpeechError;
@@ -50,6 +53,7 @@ import com.iflytek.cloud.speech.SpeechRecognizer;
 import com.iflytek.cloud.speech.SpeechUser;
 import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
+
 import de.greenrobot.lehome.ChatItem;
 import de.greenrobot.lehome.Shortcut;
 

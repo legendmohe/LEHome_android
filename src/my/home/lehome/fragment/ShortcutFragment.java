@@ -6,6 +6,7 @@ import my.home.lehome.activity.MainActivity;
 import my.home.lehome.adapter.ShortcutArrayAdapter;
 import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
+import my.home.lehome.service.ConnectionService;
 import android.app.AlertDialog;
 import android.app.ListFragment;
 import android.content.DialogInterface;

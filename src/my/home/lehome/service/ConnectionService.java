@@ -1,9 +1,7 @@
 package my.home.lehome.service;
 
-import my.home.lehome.R;
-import my.home.lehome.R.string;
-import my.home.lehome.activity.MainActivity;
-import my.home.lehome.asynctask.SendCommandAsyncTask;
+import java.util.ArrayList;
+
 import my.home.lehome.helper.MessageHelper;
 
 import org.zeromq.ZMQ;
@@ -11,8 +9,6 @@ import org.zeromq.ZMQ.Context;
 import org.zeromq.ZMQ.Poller;
 import org.zeromq.ZMQ.Socket;
 
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -25,9 +21,10 @@ public class ConnectionService extends Service {
 	public static String PUBLISH_ADDRESS = "";
 	public static String MESSAGE_BEGIN = "";
 	public static String MESSAGE_END = "";
+	private static boolean inConfirmState = false;
 
 	public static final String TAG = "ConnectionService";
-	private static final int NOTIFICATION_ID = 1;
+//	private static final int NOTIFICATION_ID = 1;
 	
 	private final LocalBinder subscribeBinder = new LocalBinder();
 //	private Socket sendMsgSocket;
@@ -70,6 +67,9 @@ public class ConnectionService extends Service {
 //	}
 	
 	public static String getFormatMessage(String content) {
+		if (inConfirmState) {
+			return content;
+		}
 		return ConnectionService.MESSAGE_BEGIN + content + ConnectionService.MESSAGE_END;
 	}
 	
@@ -127,12 +127,20 @@ public class ConnectionService extends Service {
             	try {
             		poller.poll(1000);
                 	if (poller.pollin(0)) {
-                		String msgString = recvMsgSocket.recvStr(ZMQ.NOBLOCK);
-                    	Log.d(TAG, "recv: " + msgString);
-                    	if (msgString == null) {
+                		String recvString = recvMsgSocket.recvStr(ZMQ.NOBLOCK);
+                    	Log.d(TAG, "recv: " + recvString);
+                    	if (recvString == null) {
         					continue;
         				}
-                    	MessageHelper.sendServerMsgToList(msgString);
+                    	String[] msgStrings = recvString.split("\\|");
+                    	String type = msgStrings[0];
+                    	String msg = msgStrings[1];
+                    	if (type.equals("confirm")) {  //ugly hack
+                    		inConfirmState = true;
+						}else {
+							inConfirmState = false;
+						}
+                    	MessageHelper.sendServerMsgToList(msg);
     				}
 				} catch (Exception e) {
 					Log.e(TAG, e.toString());

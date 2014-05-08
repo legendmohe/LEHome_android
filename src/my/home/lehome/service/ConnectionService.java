@@ -21,13 +21,11 @@ public class ConnectionService extends Service {
 	public static String PUBLISH_ADDRESS = "";
 	public static String MESSAGE_BEGIN = "";
 	public static String MESSAGE_END = "";
-	private static boolean inConfirmState = false;
+	private static boolean inNormalState = true;
 
 	public static final String TAG = "ConnectionService";
-//	private static final int NOTIFICATION_ID = 1;
 	
 	private final LocalBinder subscribeBinder = new LocalBinder();
-//	private Socket sendMsgSocket;
 	private Socket recvMsgSocket;
 	private Thread connectionThread;
 	private boolean stopRunning;
@@ -35,39 +33,14 @@ public class ConnectionService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		
-//		Notification.Builder builder = new Notification.Builder(this); 
-////		If you click the Notification while on Homescreen the last shown
-////		Activity of your App will be get to the foreground without starting
-////		it new. If the Activity was killed by the system you will get a 
-////		new Activity.
-//		Intent intent = new Intent(this, MainActivity.class);
-//	    intent.setAction(Intent.ACTION_MAIN);
-//	    intent.addCategory(Intent.CATEGORY_LAUNCHER);
-//        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,    
-//        		intent, 0);   
-//        
-//        builder.setContentIntent(contentIntent);  
-//        builder.setSmallIcon(R.drawable.ic_launcher);  
-//        builder.setTicker("Foreground Service Start");  
-//        builder.setContentTitle("Foreground Service");  
-//        builder.setContentText("Make this service run in the foreground.");  
-//        Notification notification = builder.build();  
-//          
-//        this.startForeground(NOTIFICATION_ID, notification);
-//        
         Runnable connect = new ConnectionRunnable();
         connectionThread = new Thread(connect);
         connectionThread.start();
         Log.d(TAG, "onCreate() executed");
 	}
 	
-//	public Socket getSendMsgSocket() {
-//		return sendMsgSocket;
-//	}
-	
 	public static String getFormatMessage(String content) {
-		if (inConfirmState) {
+		if (!inNormalState) {
 			return content;
 		}
 		return ConnectionService.MESSAGE_BEGIN + content + ConnectionService.MESSAGE_END;
@@ -113,8 +86,6 @@ public class ConnectionService extends Service {
         @Override
         public void run() {
         	Context msgContext = ZMQ.context(1);
-//    		sendMsgSocket = msgContext.socket(ZMQ.PUB);
-//    		sendMsgSocket.bind(ConnectionService.PUBLISH_ADDRESS);
         	recvMsgSocket = msgContext.socket(ZMQ.SUB);
         	recvMsgSocket.connect(SUBSCRIBE_ADDRESS);
         	recvMsgSocket.subscribe("".getBytes());
@@ -135,10 +106,10 @@ public class ConnectionService extends Service {
                     	String[] msgStrings = recvString.split("\\|");
                     	String type = msgStrings[0];
                     	String msg = msgStrings[1];
-                    	if (type.equals("confirm")) {  //ugly hack
-                    		inConfirmState = true;
+                    	if (type.equals("normal")) {  //ugly hack
+                    		inNormalState = true;
 						}else {
-							inConfirmState = false;
+							inNormalState = false;
 						}
                     	MessageHelper.sendServerMsgToList(msg);
     				}
@@ -147,7 +118,6 @@ public class ConnectionService extends Service {
 				}
             }
             recvMsgSocket.close();
-//            sendMsgSocket.close();
             Log.d(TAG, "thread stop......");
         }
     }

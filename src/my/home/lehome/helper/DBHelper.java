@@ -80,7 +80,7 @@ public class DBHelper {
 	}
 	
 	public static void addShortcut(Shortcut shortcut) {
-		if (!hasShortcut(shortcut)) {
+		if (shortcut.getId() == null || !hasShortcut(shortcut)) {
 			getDaoSession().getShortcutDao().insert(shortcut);
 		}
 	}

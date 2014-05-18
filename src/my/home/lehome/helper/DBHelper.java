@@ -108,7 +108,9 @@ public class DBHelper {
     }
 	
 	public static void destory() {
-		daoSession.clear();
+		if (daoSession != null) {
+			daoSession.clear();
+		}
 		daoMaster = null;
 		daoSession = null;
 	}

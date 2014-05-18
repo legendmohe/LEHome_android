@@ -37,17 +37,18 @@
             android:lineSpacingExtra="2dp"
             android:paddingLeft="@dimen/item_horizontal_margin"
             android:textColor="@color/text_color"
-            android:textSize="@dimen/font_size" />
+            android:textSize="@dimen/font_size"
+            android:autoLink="web" />
 
         <ImageView
             android:id="@+id/resend_imageview"
-            style="?android:attr/buttonStyleSmall"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_centerVertical="true"
             android:background="@drawable/resend_bg"
             android:clickable="false"
-            android:focusable="false" />
+            android:focusable="false"
+            android:paddingLeft="5dp" />
 
     </RelativeLayout>
 

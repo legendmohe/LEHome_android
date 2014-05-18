@@ -2,17 +2,25 @@ package my.home.lehome.service;
 
 import java.util.ArrayList;
 
+import my.home.lehome.R;
+import my.home.lehome.activity.MainActivity;
+import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.MessageHelper;
 
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 import org.zeromq.ZMQ.Poller;
 import org.zeromq.ZMQ.Socket;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 public class ConnectionService extends Service {
@@ -24,15 +32,21 @@ public class ConnectionService extends Service {
 	private static boolean inNormalState = true;
 
 	public static final String TAG = "ConnectionService";
+	public static final int NOTIFICATION_ID = MessageHelper.NOTIFICATION_ID + 1;
 	
 	private final LocalBinder subscribeBinder = new LocalBinder();
 	private Socket recvMsgSocket;
 	private Thread connectionThread;
 	private boolean stopRunning;
+
+	private static boolean activityVisible;
 	
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		
+		DBHelper.initHelper(this);
+		
         Runnable connect = new ConnectionRunnable();
         connectionThread = new Thread(connect);
         connectionThread.start();
@@ -53,15 +67,26 @@ public class ConnectionService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(TAG, "onStartCommand() executed");
-//		return super.onStartCommand(intent, flags, startId);
+		
+//		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+//				.setSmallIcon(R.drawable.ic_launcher)
+//				.setContentTitle(getString(R.string.app_name))
+//				.setContentText(getString(R.string.app_service_running))
+//				.setTicker(getString(R.string.app_service_running));
+//		Intent notificationIntent = new Intent(this, MainActivity.class);
+//		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT);
+//		builder.setContentIntent(contentIntent);
+//		startForeground(NOTIFICATION_ID, builder.build());
+		
 		return START_STICKY;
 	}
 	
 	@Override
 	public void onDestroy() {
 		stopRunning = true;
+		DBHelper.destory();
+//		stopForeground(true);
 		super.onDestroy();
-//		this.stopForeground(false);
 		Log.d(TAG, "onDestroy() executed");
 	}
 
@@ -103,15 +128,16 @@ public class ConnectionService extends Service {
                     	if (recvString == null) {
         					continue;
         				}
-                    	String[] msgStrings = recvString.split("\\|");
-                    	String type = msgStrings[0];
-                    	String msg = msgStrings[1];
-                    	if (type.equals("normal")) {  //ugly hack
+                     	JSONTokener jsonParser = new JSONTokener(recvString);
+            			JSONObject cmdObject = (JSONObject) jsonParser.nextValue();
+                    	String type = cmdObject.getString("type");
+                    	String msg = cmdObject.getString("msg");
+                    	if (type.equals("normal")) {
                     		inNormalState = true;
 						}else {
 							inNormalState = false;
 						}
-                    	MessageHelper.sendServerMsgToList(msg);
+                    	MessageHelper.sendServerMsgToList(msg, ConnectionService.this);
     				}
 				} catch (Exception e) {
 					Log.e(TAG, e.toString());
@@ -121,4 +147,17 @@ public class ConnectionService extends Service {
             Log.d(TAG, "thread stop......");
         }
     }
+	
+	  public static boolean isActivityVisible() {
+	    return activityVisible;
+	  }  
+
+	  public static void activityResumed() {
+	    activityVisible = true;
+	  }
+
+	  public static void activityPaused() {
+	    activityVisible = false;
+	  }
+
 }

@@ -38,6 +38,10 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         EditTextPreference pubEditTextPreference = (EditTextPreference) findPreference("pref_pub_address");
         subEditTextPreference.setSummary(sharedPreferences.getString("pref_sub_address", ""));
         pubEditTextPreference.setSummary(sharedPreferences.getString("pref_pub_address", ""));
+        
+        CheckBoxPreference confirmPreference = (CheckBoxPreference) findPreference("pref_speech_cmd_need_confirm");
+        boolean need_confirm = sharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
+        confirmPreference.setChecked(need_confirm);
 	}
 	
 	@Override

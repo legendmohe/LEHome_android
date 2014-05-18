@@ -12,6 +12,10 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_message_profile" >
         <CheckBoxPreference
+            android:key="pref_speech_cmd_need_confirm"
+            android:title="@string/pref_speech_cmd_need_confirm"
+            android:defaultValue="true" />
+        <CheckBoxPreference
             android:key="pref_auto_add_begin_and_end"
             android:title="@string/pref_auto_add_begin_and_end"
             android:defaultValue="false" />

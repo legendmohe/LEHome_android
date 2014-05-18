@@ -12,7 +12,6 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:layout_marginBottom="5dp"
         android:divider="@null"
         android:dividerHeight="0dp"
         android:listSelector="@android:color/transparent"
@@ -88,6 +87,7 @@
 
             <EditText
                 android:id="@+id/send_cmd_edittext"
+                android:textCursorDrawable="@null"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"

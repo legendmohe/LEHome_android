@@ -68,9 +68,6 @@ public class ChatItemArrayAdapter extends ArrayAdapter<ChatItem> {
 			dateTextView.setVisibility(View.INVISIBLE);
 		}
 		
-		wrapper.setClickable(!chatItem.getIsMe());
-		wrapper.setFocusable(!chatItem.getIsMe());
-		
 		wrapper.setGravity(!chatItem.getIsMe() ? Gravity.LEFT : Gravity.RIGHT);
 
 		return row;

@@ -4,8 +4,9 @@
     <string name="msc_app_id">53561e75</string>
 
     <string name="app_name">LEHome</string>
+    <string name="app_service_running">服务正在运行</string>
     <string name="title_section1">控制</string>
-    <string name="title_section2">快捷方式</string>
+    <string name="title_section2">收藏</string>
     <string name="title_section3">历史</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -28,15 +29,22 @@
     <string name="pref_auto_add_begin_and_end">自动补全命令</string>
     <string name="pref_message_begin">命令头</string>
     <string name="pref_message_end">命令尾</string>
+    <string name="pref_speech_cmd_need_confirm">语音命令后弹出确认窗口</string>
     
+    <string name="speech_cmd_need_confirm">确认发送语音命令</string>
     <string name="qs_default_input">开灯</string>
     <string name="add_shortcut_item_summ">键入命令</string>
-    <string name="add_chat_item_to_shortcut">添加到快捷列表</string>
-    <string name="delete_shortcut_item">删除快捷方式</string>
+    <string name="add_chat_item_to_shortcut">添加到收藏</string>
+    <string name="delete_shortcut_item">删除收藏</string>
+    <string name="copy_item">复制消息</string>
 
     <string name="title_activity_settings">设置</string>
     <string name="local_ip_item">本机ip</string>
+    <string name="action_exit">退出</string>
     <string name="add_shortcut_item">添加</string>
     <string name="button_speech">启动识别</string>
     <string name="msc_login_faild">讯飞语音云登陆失败</string>
+    
+    <string name="noti_new_msg">新消息</string>
+    <string name="noti_num_new_msg">你有%1$s条新消息</string>
 </resources>

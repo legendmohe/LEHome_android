@@ -10,16 +10,24 @@ import my.home.lehome.adapter.ChatItemArrayAdapter;
 import my.home.lehome.asynctask.LoadMoreChatItemAsyncTask;
 import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
+import my.home.lehome.helper.MessageHelper;
 import my.home.lehome.service.ConnectionService;
 import my.home.lehome.util.JsonParser;
 import android.R.integer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.CheckBoxPreference;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -84,19 +92,18 @@ public class ChatFragment extends Fragment {
     	super.onCreate(savedInstanceState);
     	setRetainInstance(true);
     	initMSC();
+    	if (adapter == null) {
+        	adapter = new ChatItemArrayAdapter(this.getActivity(), R.layout.chat_item);
+		}
     	handler = new Handler(){ 
             @Override 
             public void handleMessage(Message msg) { 
                 super.handleMessage(msg); 
-                Log.d(TAG, "onSubscribalbeReceiveMsg : " + msg.obj);
+                ChatItem newItem = (ChatItem) msg.obj;
+                Log.d(TAG, "onSubscribalbeReceiveMsg : " + newItem.getContent());
                 if(msg.what==FLAG){ 
-		        	ChatItem newItem = new ChatItem();
-		        	newItem.setContent((String)msg.obj);
-		        	newItem.setIsMe(false);
-		        	newItem.setDate(new Date());
 		        	adapter.add(newItem);
                 	ChatFragment.this.scrollMyListViewToBottom();
-                	DBHelper.addChatItem(newItem);
                 }
             } 
              
@@ -131,14 +138,6 @@ public class ChatFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.chat_fragment, container, false);
         
         cmdListview = (ListView) rootView.findViewById(R.id.chat_list);
-        if (adapter == null) {
-        	adapter = new ChatItemArrayAdapter(this.getActivity(), R.layout.chat_item);
-        	List<ChatItem> chatItems = DBHelper.loadLatest(CHATITEM_LOAD_LIMIT);
-        	if (chatItems != null) {
-        		Collections.reverse(chatItems); // reverse descend items
-        		adapter.setData(chatItems);
-			}
-		}
         cmdListview.setAdapter(adapter);
 
 		sendCmdEdittext = (EditText) rootView.findViewById(R.id.send_cmd_edittext);
@@ -186,16 +185,18 @@ public class ChatFragment extends Fragment {
     		@Override
     		public void onGlobalLayout() {
     			int heightDiff = getView().getRootView().getHeight() - getView().getHeight();
-    			Log.e(TAG, "height" + String.valueOf(heightDiff));
+    			Log.d(TAG, "height" + String.valueOf(heightDiff));
     			if (heightDiff > 200) { // if more than 100 pixels, its probably a keyboard...
     				Log.d(TAG, "keyboard show.");
     				if (!keyboard_open) {
     					ChatFragment.this.scrollMyListViewToBottom();	
     				}
     				keyboard_open = true;
-    			}else {
-    				keyboard_open = false;
-    				Log.d(TAG, "keyboard hide.");
+    			}else if(keyboard_open) {
+					keyboard_open = false;
+					sendCmdEdittext.clearFocus();
+					cmdListview.requestFocus();
+					Log.d(TAG, "keyboard hide.");
     			}
     		}
     	});
@@ -254,8 +255,14 @@ public class ChatFragment extends Fragment {
             ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         if (v.getId() == cmdListview.getId()) {
+        	AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
 	        MenuInflater inflater = getActivity().getMenuInflater();
-	        inflater.inflate(R.menu.add_chat_item_to_shortcut, menu);
+	        ChatItem chatItem = adapter.getItem(info.position);
+	        if (chatItem.getIsMe()) {
+	        	inflater.inflate(R.menu.chat_item_is_me, menu);
+			}else {
+				inflater.inflate(R.menu.chat_item_not_me, menu);
+			}
 		}
     }
     
@@ -273,9 +280,9 @@ public class ChatFragment extends Fragment {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
           AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+          String selectedString = adapter.getItem(info.position).getContent();
           switch(item.getItemId()) {
               case R.id.add_chat_item_to_shortcut:
-            	  String selectedString = adapter.getItem(info.position).getContent();
             	  MainActivity activity = (MainActivity) getActivity();
             	  if(activity.getShortcurFragment() == null) {
             		  Shortcut shortcut = new Shortcut();
@@ -288,9 +295,13 @@ public class ChatFragment extends Fragment {
             	  }
                   return true;
               case R.id.resend_item:
-            	  String resendString = adapter.getItem(info.position).getContent();
             	  MainActivity mainActivity = (MainActivity) getActivity();
-            	  new SendCommandAsyncTask(mainActivity).execute(resendString);
+            	  new SendCommandAsyncTask(mainActivity).execute(selectedString);
+                  return true;
+              case R.id.copy_item:
+            	  ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE); 
+            	  ClipData clip = ClipData.newPlainText(getString(R.string.app_name), selectedString);
+            	  clipboard.setPrimaryClip(clip);
                   return true;
               case R.id.voice_input:
             	  showIatDialog();
@@ -339,6 +350,26 @@ public class ChatFragment extends Fragment {
     public void onDetach() {
     	super.onDetach();
     };
+    
+    @Override
+    public void onResume() {
+    	super.onResume();
+    	MessageHelper.resetUnreadCount();
+		this.resetDatas();
+    }
+    
+    @Override
+    public void onPause() {
+    	super.onPause();
+    }
+    
+    public void resetDatas() {
+    	List<ChatItem> chatItems = DBHelper.loadLatest(CHATITEM_LOAD_LIMIT);
+    	if (chatItems != null) {
+    		Collections.reverse(chatItems); // reverse descend items
+    		adapter.setData(chatItems);
+		}
+	}
     
     private void showTip(String str)
 	{
@@ -390,11 +421,37 @@ public class ChatFragment extends Fragment {
 		iatDialog.setListener(new RecognizerDialogListener() {
 			@Override
 			public void onResult(RecognizerResult results, boolean isLast) {
-				String resultString = JsonParser.parseIatResult(results.getResultString());
+				final String resultString = JsonParser.parseIatResult(results.getResultString());
 				Log.d(TAG, "result: " + resultString);
 				if (!resultString.trim().equals("")) {
-					MainActivity mainActivity = (MainActivity) getActivity();
-					new SendCommandAsyncTask(mainActivity).execute(resultString);
+					SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+			        boolean need_confirm = mySharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
+			        if (!need_confirm) {
+			        	MainActivity mainActivity = (MainActivity) getActivity();
+			        	new SendCommandAsyncTask(mainActivity).execute(resultString);
+					}else {
+						AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+
+				    	alert.setMessage(resultString);
+				    	alert.setTitle(getResources().getString(R.string.speech_cmd_need_confirm));
+
+				    	alert.setPositiveButton(getResources().getString(R.string.com_comfirm)
+				    							, new DialogInterface.OnClickListener() {
+					    	public void onClick(DialogInterface dialog, int whichButton) {
+					    		MainActivity mainActivity = (MainActivity) getActivity();
+					        	new SendCommandAsyncTask(mainActivity).execute(resultString);
+					    	}
+				    	});
+
+				    	alert.setNegativeButton(getResources().getString(R.string.com_cancel), 
+				    							new DialogInterface.OnClickListener() {
+				    		public void onClick(DialogInterface dialog, int whichButton) {
+				    			// Canceled.
+				    		}
+				    	});
+
+				    	alert.show();
+					}
 				}
 			}
 			public void onError(SpeechError error) {

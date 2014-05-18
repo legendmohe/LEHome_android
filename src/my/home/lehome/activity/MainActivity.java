@@ -29,6 +29,7 @@ import android.widget.Toast;
 public class MainActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
+	public static boolean STOPPED = false;
 
     private NavigationDrawerFragment mNavigationDrawerFragment;
     private CharSequence mTitle;
@@ -54,16 +55,14 @@ public class MainActivity extends Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        this.setupService();
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         
         mTitle = getTitle();
         
-        DBHelper.initHelper(this);
-
-        this.setupService();
-
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
@@ -72,16 +71,29 @@ public class MainActivity extends Activity
     
     private void setupService() {
     	loadPref();
-    	Intent bindIntent = new Intent(this, ConnectionService.class);  
-    	this.bindService(bindIntent, connection, Context.BIND_AUTO_CREATE);
+    	DBHelper.initHelper(this);
+    	startService(new Intent(this, ConnectionService.class));
+    	this.bindService(new Intent(this, ConnectionService.class), connection, Context.BIND_AUTO_CREATE);
+    	STOPPED = false;
 	}
     
     @Override
     protected void onDestroy() {
     	this.unbindService(connection);
-    	DBHelper.destory();
     	super.onDestroy();
     };
+    
+    @Override
+    protected void onResume() {
+      super.onResume();
+      ConnectionService.activityResumed();
+    }
+
+    @Override
+    protected void onPause() {
+      super.onPause();
+      ConnectionService.activityPaused();
+    }
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
@@ -176,6 +188,11 @@ public class MainActivity extends Activity
 			String ipString = NetworkHelper.getIPAddress(true);
 			Toast.makeText(this, getResources().getString(R.string.local_ip_item) + ":" + ipString, Toast.LENGTH_SHORT).show();
 			return true;
+		case R.id.action_exit:
+			stopService(new Intent(this, ConnectionService.class));
+			this.finish();
+			STOPPED = true;
+			return true;
 		default:
 			break;
 		}
@@ -192,7 +209,9 @@ public class MainActivity extends Activity
     	if (!old_sub_address.equals(ConnectionService.SUBSCRIBE_ADDRESS)
     			|| !old_pub_address.equals(ConnectionService.PUBLISH_ADDRESS)) {
     		Intent bindIntent = new Intent(this, ConnectionService.class);  
-        	this.unbindService(connection);;
+        	this.unbindService(connection);
+        	stopService(new Intent(this, ConnectionService.class));
+        	startService(new Intent(this, ConnectionService.class));
         	this.bindService(bindIntent, connection, Context.BIND_AUTO_CREATE);
 		}
 //    	MessageHelper.sendServerMsgToList(getResources().getString(R.string.pref_sub_address) + ":" + ConnectionService.SUBSCRIBE_ADDRESS);

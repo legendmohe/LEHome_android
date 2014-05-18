@@ -2,6 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     
     <item
+        android:id="@+id/copy_item"
+        android:title="@string/copy_item"/>
+    <item
         android:id="@+id/add_chat_item_to_shortcut"
         android:title="@string/add_chat_item_to_shortcut"/>
     <item

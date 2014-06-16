@@ -20,9 +20,13 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -83,6 +87,9 @@ public class ChatFragment extends Fragment {
 	private RecognizerDialog iatDialog;
 	private SpeechRecognizer iatRecognizer;
 	
+	private AudioManager mAudioManager;
+    private ComponentName mAudioReceiver;
+	
 	public static int CHATITEM_LOAD_LIMIT = 20;
 	public static final int CHATITEM_LOWEST_INDEX = 1;
 	
@@ -130,6 +137,11 @@ public class ChatFragment extends Fragment {
 	    		}
 	    });
     };
+    
+    @Override
+    public void onDestroy() {
+    	super.onDestroy();
+    }
 
     @SuppressLint("ShowToast")
 	@Override

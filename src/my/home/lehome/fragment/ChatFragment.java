@@ -88,6 +88,9 @@ public class ChatFragment extends Fragment {
 	private SpeechRecognizer iatRecognizer;
 	private boolean scriptInputMode;
 	
+	private AudioManager mAudioManager;
+    private ComponentName mAudioReceiver;
+	
 	public static int CHATITEM_LOAD_LIMIT = 20;
 	public static final int CHATITEM_LOWEST_INDEX = 1;
 	

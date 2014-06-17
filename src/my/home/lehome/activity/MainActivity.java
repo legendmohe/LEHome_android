@@ -3,7 +3,6 @@ package my.home.lehome.activity;
 import my.home.lehome.R;
 import my.home.lehome.fragment.ChatFragment;
 import my.home.lehome.fragment.NavigationDrawerFragment;
-import my.home.lehome.fragment.PagerFragment;
 import my.home.lehome.fragment.ShortcutFragment;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.NetworkHelper;

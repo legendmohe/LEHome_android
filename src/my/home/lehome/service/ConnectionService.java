@@ -1,19 +1,12 @@
 package my.home.lehome.service;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import my.home.lehome.R;
-import my.home.lehome.activity.MainActivity;
 import my.home.lehome.helper.CommonHelper;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.MessageHelper;
 
-import org.apache.http.util.ExceptionUtils;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.zeromq.ZMQ;
@@ -21,15 +14,12 @@ import org.zeromq.ZMQ.Context;
 import org.zeromq.ZMQ.Poller;
 import org.zeromq.ZMQ.Socket;
 
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 public class ConnectionService extends Service {
@@ -182,7 +172,7 @@ public class ConnectionService extends Service {
 							recvHeartbeat = false;
 						}
             		}
-				}catch (Exception e) {
+				} catch (Exception e) {
 					Log.e(TAG, Log.getStackTraceString(e));
 				}
         	}

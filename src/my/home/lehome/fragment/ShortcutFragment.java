@@ -8,9 +8,12 @@ import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.service.ConnectionService;
 import android.app.AlertDialog;
-import android.app.ListFragment;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.v4.app.ListFragment;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -67,6 +70,7 @@ public class ShortcutFragment extends ListFragment {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
           AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+          String selectedString = adapter.getItem(info.position).getContent();
           switch(item.getItemId()) {
               case R.id.delete_shortcut_item:
             	  Shortcut shortcut = adapter.getItem(info.position);
@@ -74,6 +78,11 @@ public class ShortcutFragment extends ListFragment {
             	  adapter.notifyDataSetChanged();
             	  DBHelper.deleteShortcut(shortcut.getId());
                   return true;
+              case R.id.copy_shortcut_item:
+      			  ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE); 
+            	  ClipData clip = ClipData.newPlainText(getString(R.string.app_name), selectedString);
+            	  clipboard.setPrimaryClip(clip);
+            	  return true;
               default:
                     return super.onContextItemSelected(item);
           }
@@ -102,6 +111,7 @@ public class ShortcutFragment extends ListFragment {
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+    	AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
     	int id = item.getItemId();
         switch (id) {
 		case R.id.add_shortcut_item:

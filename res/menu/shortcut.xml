@@ -5,5 +5,4 @@
         android:id="@+id/add_shortcut_item"
         android:showAsAction="withText|ifRoom"
         android:title="@string/add_shortcut_item"/>
-
 </menu>

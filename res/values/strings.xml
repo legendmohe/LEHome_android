@@ -10,7 +10,7 @@
     <string name="title_section3">历史</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="voice_input">语音</string>
+    <string name="voice_input">语音脚本</string>
     <string name="double_back_to_quit">再次点击退出程序</string>
     <string name="action_settings">设置</string>
     
@@ -23,8 +23,8 @@
     <string name="pref_sub_only">只收听当前用户</string>
     <string name="pref_sub_only_summ">取消后显示所有信息</string>
     <string name="pref_user_profile">连接</string>
-    <string name="pref_pub_address">本机绑定地址</string>
-    <string name="pref_sub_address">服务器地址</string>
+    <string name="pref_pub_address">服务器地址</string>
+    <string name="pref_sub_address">消息广播地址</string>
     <string name="pref_message_profile">消息</string>
     <string name="pref_auto_add_begin_and_end">自动补全命令</string>
     <string name="pref_message_begin">命令头</string>
@@ -42,6 +42,7 @@
     <string name="local_ip_item">本机ip</string>
     <string name="action_exit">退出</string>
     <string name="add_shortcut_item">添加</string>
+    <string name="copy_shortcut_item">复制</string>
     <string name="button_speech">启动识别</string>
     <string name="msc_login_faild">讯飞语音云登陆失败</string>
     

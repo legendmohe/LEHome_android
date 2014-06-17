@@ -7,6 +7,7 @@ import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
 import my.home.lehome.fragment.ChatFragment;
 import my.home.lehome.service.ConnectionService;
+import android.R.string;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -39,14 +40,17 @@ public class MessageHelper {
     	if (!ConnectionService.isActivityVisible()) {
     		unreadMsgCount++;
     		if (unreadMsgCount <= 1) {
+    			content = content.replaceAll("\\s?", "");
     			addNotification(
     					context.getString(R.string.noti_new_msg)
-    					, content.replaceAll("\\s?", "")
+    					, content
+    					, content
     					, context);
 			}else {
 				addNotification(
 						context.getString(R.string.noti_new_msg)
 						, context.getString(R.string.noti_num_new_msg, unreadMsgCount)
+						, content
 						, context
 						);
 			}
@@ -59,13 +63,13 @@ public class MessageHelper {
 		}
 	}
 	
-	private static void addNotification(String title, String content, Context context) {
+	private static void addNotification(String title, String content, String ticker, Context context) {
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
 											.setSmallIcon(R.drawable.ic_launcher)
 											.setAutoCancel(true)
 											.setContentTitle(title)
 											.setContentText(content)
-											.setTicker(content)
+											.setTicker(ticker)
 											.setDefaults(Notification.DEFAULT_ALL);
 		Intent notificationIntent = new Intent(context, MainActivity.class);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT);

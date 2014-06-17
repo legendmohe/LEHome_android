@@ -37,7 +37,7 @@
             android:name=".activity.SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
-        
+		
         <service 
             android:name=".service.ConnectionService" >  
         </service>

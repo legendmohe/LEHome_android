@@ -39,6 +39,6 @@ public class LEHomeApplication extends Application {
 			}
         	
         }; 
-	    registerReceiver(receiver, filter); 
+        registerReceiver(receiver, filter); 
     }
 }

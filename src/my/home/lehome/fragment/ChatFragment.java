@@ -17,17 +17,21 @@ import android.R.integer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.CheckBoxPreference;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -82,6 +86,7 @@ public class ChatFragment extends Fragment {
 	
 	private RecognizerDialog iatDialog;
 	private SpeechRecognizer iatRecognizer;
+	private boolean scriptInputMode;
 	
 	public static int CHATITEM_LOAD_LIMIT = 20;
 	public static final int CHATITEM_LOWEST_INDEX = 1;
@@ -130,6 +135,11 @@ public class ChatFragment extends Fragment {
 	    		}
 	    });
     };
+    
+    @Override
+    public void onDestroy() {
+    	super.onDestroy();
+    }
 
     @SuppressLint("ShowToast")
 	@Override
@@ -270,8 +280,9 @@ public class ChatFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch(item.getItemId()) {
         case R.id.voice_input:
-      	  showIatDialog();
-      	  return true;
+        	scriptInputMode = true;
+        	showIatDialog();
+        	return true;
         default:
               return super.onOptionsItemSelected(item);
 	    }
@@ -303,9 +314,6 @@ public class ChatFragment extends Fragment {
             	  ClipData clip = ClipData.newPlainText(getString(R.string.app_name), selectedString);
             	  clipboard.setPrimaryClip(clip);
                   return true;
-              case R.id.voice_input:
-            	  showIatDialog();
-            	  return true;
               default:
                     return super.onContextItemSelected(item);
           }
@@ -421,25 +429,30 @@ public class ChatFragment extends Fragment {
 		iatDialog.setListener(new RecognizerDialogListener() {
 			@Override
 			public void onResult(RecognizerResult results, boolean isLast) {
-				final String resultString = JsonParser.parseIatResult(results.getResultString());
-				Log.d(TAG, "result: " + resultString);
-				if (!resultString.trim().equals("")) {
+				String resultString = JsonParser.parseIatResult(results.getResultString());
+				if (scriptInputMode == true) {
+					resultString = "运行脚本#" + resultString + "#";
+					scriptInputMode = false;
+				}
+				final String msgString = resultString;
+				Log.d(TAG, "result: " + msgString);
+				if (!msgString.trim().equals("")) {
 					SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 			        boolean need_confirm = mySharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
 			        if (!need_confirm) {
 			        	MainActivity mainActivity = (MainActivity) getActivity();
-			        	new SendCommandAsyncTask(mainActivity).execute(resultString);
+			        	new SendCommandAsyncTask(mainActivity).execute(msgString);
 					}else {
 						AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
 
-				    	alert.setMessage(resultString);
+				    	alert.setMessage(msgString);
 				    	alert.setTitle(getResources().getString(R.string.speech_cmd_need_confirm));
 
 				    	alert.setPositiveButton(getResources().getString(R.string.com_comfirm)
 				    							, new DialogInterface.OnClickListener() {
 					    	public void onClick(DialogInterface dialog, int whichButton) {
 					    		MainActivity mainActivity = (MainActivity) getActivity();
-					        	new SendCommandAsyncTask(mainActivity).execute(resultString);
+					        	new SendCommandAsyncTask(mainActivity).execute(msgString);
 					    	}
 				    	});
 

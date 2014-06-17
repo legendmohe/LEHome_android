@@ -3,30 +3,28 @@ package my.home.lehome.activity;
 import my.home.lehome.R;
 import my.home.lehome.fragment.ChatFragment;
 import my.home.lehome.fragment.NavigationDrawerFragment;
+import my.home.lehome.fragment.PagerFragment;
 import my.home.lehome.fragment.ShortcutFragment;
-import my.home.lehome.helper.CommonHelper;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.NetworkHelper;
 import my.home.lehome.service.ConnectionService;
 import android.app.ActionBar;
-import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-public class MainActivity extends Activity
+public class MainActivity extends FragmentActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
 	public static boolean STOPPED = false;
@@ -70,7 +68,6 @@ public class MainActivity extends Activity
     }
     
     private void setupService() {
-    	loadPref();
     	DBHelper.initHelper(this);
     	startService(new Intent(this, ConnectionService.class));
     	this.bindService(new Intent(this, ConnectionService.class), connection, Context.BIND_AUTO_CREATE);
@@ -104,6 +101,7 @@ public class MainActivity extends Activity
 	    		chatFragment = new ChatFragment();
 	    	}
 	    	fragment = chatFragment;
+//			fragment = new PagerFragment();
 			break;
 		case 1:
 	    	if(shortcurFragment == null) {
@@ -116,7 +114,7 @@ public class MainActivity extends Activity
 			break;
 		}
     	this.onSectionAttached(position);
-        FragmentManager fragmentManager = getFragmentManager();
+        FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.container, fragment)
                 .commit();
@@ -125,13 +123,13 @@ public class MainActivity extends Activity
     public void onSectionAttached(int number) {
     	mCurrentSection = number;
         switch (number) {
-            case 1:
+            case 0:
                 mTitle = getString(R.string.title_section1);
                 break;
-            case 2:
+            case 1:
                 mTitle = getString(R.string.title_section2);
                 break;
-            case 3:
+            case 2:
                 mTitle = getString(R.string.title_section3);
                 break;
         }
@@ -221,23 +219,7 @@ public class MainActivity extends Activity
     
        
     private void loadPref(){
-    	SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-    	ConnectionService.SUBSCRIBE_ADDRESS = mySharedPreferences.getString("pref_sub_address", "tcp://192.168.1.102:9000");
-    	ConnectionService.PUBLISH_ADDRESS = mySharedPreferences.getString("pref_pub_address", "http://192.168.1.102:8002");
-    	boolean auto_complete_cmd = mySharedPreferences.getBoolean("pref_auto_add_begin_and_end", false);
-    	if (auto_complete_cmd) {
-    		ConnectionService.MESSAGE_BEGIN = mySharedPreferences.getString("pref_message_begin", "");
-    		ConnectionService.MESSAGE_END = mySharedPreferences.getString("pref_message_end", "");
-    		if (ConnectionService.MESSAGE_BEGIN.endsWith("/")) {
-				ConnectionService.MESSAGE_BEGIN = CommonHelper.removeLastChar(ConnectionService.MESSAGE_BEGIN);
-			}
-    		if (ConnectionService.MESSAGE_END.endsWith("/")) {
-    			ConnectionService.MESSAGE_END = CommonHelper.removeLastChar(ConnectionService.MESSAGE_END);
-    		}
-		}else {
-			ConnectionService.MESSAGE_BEGIN = "";
-    		ConnectionService.MESSAGE_END = "";
-		}
+    	connectionService.loadPref();
     }
     
     @Override
@@ -270,5 +252,5 @@ public class MainActivity extends Activity
 	public ShortcutFragment getShortcurFragment() {
 		return shortcurFragment;
 	}
-
+	
 }

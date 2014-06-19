@@ -30,11 +30,12 @@ public class MessageHelper {
 		return unreadMsgCount > 0 ? true : false;
 	}
 	
-	public static void sendServerMsgToList(String content, Context context) {
+	public static void sendServerMsgToList(int seq, String content, Context context) {
 		ChatItem newItem = new ChatItem();
     	newItem.setContent(content);
     	newItem.setIsMe(false);
     	newItem.setDate(new Date());
+    	newItem.setSeq(seq);
     	DBHelper.addChatItem(newItem);
     	
     	if (!ConnectionService.isActivityVisible()) {

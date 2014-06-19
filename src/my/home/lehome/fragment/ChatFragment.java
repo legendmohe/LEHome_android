@@ -379,6 +379,7 @@ public class ChatFragment extends Fragment {
     	if (chatItems != null) {
     		Collections.reverse(chatItems); // reverse descend items
     		adapter.setData(chatItems);
+//    		ConnectionService.CURRENT_MAX_SEQ = chatItems.get(chatItems.size() - 1).getSeq();
 		}
 	}
     

@@ -11,6 +11,7 @@ public class ChatItem {
     private String content;
     private boolean isMe;
     private boolean succeed;
+    private int seq;
     private java.util.Date date;
 
     public ChatItem() {
@@ -20,11 +21,12 @@ public class ChatItem {
         this.id = id;
     }
 
-    public ChatItem(Long id, String content, boolean isMe, boolean succeed, java.util.Date date) {
+    public ChatItem(Long id, String content, boolean isMe, boolean succeed, int seq, java.util.Date date) {
         this.id = id;
         this.content = content;
         this.isMe = isMe;
         this.succeed = succeed;
+        this.seq = seq;
         this.date = date;
     }
 
@@ -60,6 +62,14 @@ public class ChatItem {
 
     public void setSucceed(boolean succeed) {
         this.succeed = succeed;
+    }
+
+    public int getSeq() {
+        return seq;
+    }
+
+    public void setSeq(int seq) {
+        this.seq = seq;
     }
 
     public java.util.Date getDate() {

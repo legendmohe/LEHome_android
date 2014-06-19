@@ -1,32 +1,18 @@
 package my.home.lehome.asynctask;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.Date;
 
 import my.home.lehome.activity.MainActivity;
-import my.home.lehome.adapter.ChatItemArrayAdapter;
 import my.home.lehome.fragment.ChatFragment;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.service.ConnectionService;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.zeromq.ZMQ.Socket;
+import org.zeromq.ZMQ;
 
-import de.greenrobot.lehome.ChatItem;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
+import de.greenrobot.lehome.ChatItem;
 
 
 public class SendCommandAsyncTask extends AsyncTask<String, String, Boolean> {
@@ -51,32 +37,28 @@ public class SendCommandAsyncTask extends AsyncTask<String, String, Boolean> {
 		Log.d(TAG, "sending: " + cmdString);
 
 		String message = ConnectionService.getFormatMessage(cmdString);
-		String urlString = ConnectionService.getFormatMessageURL(Uri.encode(message));
-		HttpClient httpclient = new DefaultHttpClient();
-		HttpResponse response;
-        try {
-            response = httpclient.execute(new HttpGet(urlString));
-            StatusLine statusLine = response.getStatusLine();
-            if(statusLine.getStatusCode() == HttpStatus.SC_OK){
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                response.getEntity().writeTo(out);
-                out.close();
-                if (out.toString().equals("ok")) {
-					return true;
-				} else {
-                	return false;
-				}
-            } else{
-                //Closes the connection.
-                response.getEntity().getContent().close();
-                throw new IOException(statusLine.getReasonPhrase());
-            }
-        } catch (ClientProtocolException e) {
-            
-        } catch (IOException e) {
-            
-        }
-        return false;
+		
+		ZMQ.Context context = ZMQ.context(1);
+        ZMQ.Socket socket = context.socket(ZMQ.REQ);
+        socket.setLinger(0);
+        socket.connect(ConnectionService.PUBLISH_ADDRESS);
+        socket.send(message, 0);
+        
+        ZMQ.Poller poller = new ZMQ.Poller(1);
+        poller.register(socket, ZMQ.Poller.POLLIN);
+        poller.poll(7*1000);
+        boolean succeed = false;
+        if (poller.pollin(0)) {
+        	String result = new String(socket.recvStr());
+        	if (result.equals("ok")) {
+        		succeed = true;
+        	}
+		}
+ 
+        socket.close();
+        context.term();
+		
+        return succeed;
     }
 	
     @Override

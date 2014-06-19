@@ -7,7 +7,9 @@ import my.home.lehome.helper.CommonHelper;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.MessageHelper;
 
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 import org.json.JSONTokener;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
@@ -37,6 +39,8 @@ public class ConnectionService extends Service {
 	private Socket recvMsgSocket;
 	private Context recvContext;
 	private boolean stopRunning;
+	private boolean loginSuccess;
+	public static int CURRENT_MAX_SEQ;
 	
 	private boolean recvHeartbeat;
 	private Lock heartbeatLock = new ReentrantLock();
@@ -49,6 +53,7 @@ public class ConnectionService extends Service {
 		super.onCreate();
 		
 		loadPref();
+		CURRENT_MAX_SEQ = -1;
 		DBHelper.initHelper(this);
 		
 		poller = new Poller(1);
@@ -68,8 +73,8 @@ public class ConnectionService extends Service {
 	
 	public void loadPref(){
     	SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-    	ConnectionService.SUBSCRIBE_ADDRESS = mySharedPreferences.getString("pref_sub_address", "tcp://192.168.1.102:9000");
-    	ConnectionService.PUBLISH_ADDRESS = mySharedPreferences.getString("pref_pub_address", "http://192.168.1.102:8002");
+    	ConnectionService.SUBSCRIBE_ADDRESS = mySharedPreferences.getString("pref_sub_address", "tcp://192.168.1.101:9000");
+    	ConnectionService.PUBLISH_ADDRESS = mySharedPreferences.getString("pref_pub_address", "tcp://192.168.1.101:8000");
     	boolean auto_complete_cmd = mySharedPreferences.getBoolean("pref_auto_add_begin_and_end", false);
     	if (auto_complete_cmd) {
     		ConnectionService.MESSAGE_BEGIN = mySharedPreferences.getString("pref_message_begin", "");
@@ -139,14 +144,81 @@ public class ConnectionService extends Service {
         }
     }
 	
-	private void initConnection() {
+	public boolean loginConnection() {
+		if (login()) {
+			loginSuccess = true;
+		}else {
+			loginSuccess = false;
+		}
+		return loginSuccess;
+	}
+	
+	private boolean login() {
+		String cmdString = "{'type':'login', 'id':'testid'}";
+		String reply = this.sendCmd(cmdString);
+		if (reply == null) {
+			return false;
+		}
+		JSONTokener jsonParser = new JSONTokener(reply);
+		try {
+			JSONObject cmdObject = (JSONObject) jsonParser.nextValue();
+			String res = cmdObject.getString("res");
+			if (res.equals("ok")) {
+				return true;
+			}
+		} catch (JSONException e) {
+			Log.e(TAG, Log.getStackTraceString(e));
+		}
+		return false;
+	}
+	
+	private boolean doneMessage(int seq) {
+		String cmdString = "{'type':'done', 'seq':" + String.valueOf(seq) + "}";
+		String reply = this.sendCmd(cmdString);
+		if (reply == null) {
+			return false;
+		}
+		JSONTokener jsonParser = new JSONTokener(reply);
+		try {
+			JSONObject cmdObject = (JSONObject) jsonParser.nextValue();
+			String res = cmdObject.getString("res");
+			if (res.equals("ok")) {
+				return true;
+			}
+		} catch (JSONException e) {
+			Log.e(TAG, Log.getStackTraceString(e));
+		}
+		return false;
+	}
+	
+	private boolean syncUnread(int seq) {
+		return false;
+	}
+	
+	private String sendCmd(String cmdString) {
+		Context context = ZMQ.context(1);
+        Socket requester = context.socket(ZMQ.REQ);
+        requester.setLinger(0);
+        requester.connect("tcp://192.168.1.101:9001");
+        Poller poller = new Poller(1);
+		poller.register(requester, ZMQ.Poller.POLLIN);
 		
-//		if (recvMsgSocket. != null) {
-//			poller.unregister(recvMsgSocket);
-//			recvMsgSocket.close();
-//			recvMsgSocket = null;
-//			recvContext.close();
-//			recvContext = null;
+		
+        requester.send(cmdString, 0);
+        poller.poll(10000);
+        String reply = null;
+		if (poller.pollin(0)) {
+			reply = requester.recvStr (0);
+		}
+		
+        requester.close();
+        context.term();
+        return reply;
+	}
+	
+	private void initConnection() {
+//		if (!loginSuccess) {
+//			loginConnection();
 //		}
 		try {
 			recvMsgSocket.disconnect(SUBSCRIBE_ADDRESS);  // just reconnect, don't close and new
@@ -189,29 +261,44 @@ public class ConnectionService extends Service {
             while(!stopRunning) {
             	try {
             		poller.poll(5000);
-                	if (poller.pollin(0)) {
-                		String recvString = recvMsgSocket.recvStr(ZMQ.NOBLOCK);
-                    	Log.d(TAG, "recv: " + recvString);
-                    	if (recvString == null) {
-        					continue;
-        				}
-                     	JSONTokener jsonParser = new JSONTokener(recvString);
-            			JSONObject cmdObject = (JSONObject) jsonParser.nextValue();
-                    	String type = cmdObject.getString("type");
-                    	String msg = cmdObject.getString("msg");
-                    	if (type.equals("heartbeat")) {
-                    		synchronized (heartbeatLock) {
-                    			recvHeartbeat = true;
-                    			heartbeatLock.notifyAll();
-        					}
-							continue;
-						}else if (type.equals("normal")) {
-                    		inNormalState = true;
-						}else {
-							inNormalState = false;
-						}
-                    	MessageHelper.sendServerMsgToList(msg, ConnectionService.this);
-    				}
+//            		if (!loginSuccess) {
+//            			loginConnection();
+//            		}else {
+            			if (poller.pollin(0)) {
+                    		String recvString = recvMsgSocket.recvStr(ZMQ.NOBLOCK);
+                        	Log.d(TAG, "recv: " + recvString);
+                        	if (recvString == null) {
+            					continue;
+            				}
+                         	JSONTokener jsonParser = new JSONTokener(recvString);
+                			JSONObject cmdObject = (JSONObject) jsonParser.nextValue();
+                        	String type = cmdObject.getString("type");
+                        	String msg = cmdObject.getString("msg");
+                        	int seq = cmdObject.getInt("seq");
+                        	int maxseq = cmdObject.getInt("maxseq");
+//                        	if (maxseq > CURRENT_MAX_SEQ) {
+//    							if (syncUnread(maxseq)) {
+//    								CURRENT_MAX_SEQ = maxseq;
+//    							}
+//    						}
+                        	if (type.equals("heartbeat")) {
+                        		synchronized (heartbeatLock) {
+                        			recvHeartbeat = true;
+                        			heartbeatLock.notifyAll();
+            					}
+    							continue;
+    						}else if (type.equals("normal")) {
+                        		inNormalState = true;
+    						}else {
+    							inNormalState = false;
+    						}
+//                        	if(!doneMessage(seq)) {
+//                        		Log.w(TAG, "doneMessage lost connection.");
+//                        	}
+                    		MessageHelper.sendServerMsgToList(seq, msg, ConnectionService.this);
+                        	
+//        				}
+            		}
 				} catch (Exception e) {
 					Log.e(TAG, Log.getStackTraceString(e));
 				}

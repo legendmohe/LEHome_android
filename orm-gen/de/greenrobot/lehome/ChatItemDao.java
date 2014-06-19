@@ -27,7 +27,8 @@ public class ChatItemDao extends AbstractDao<ChatItem, Long> {
         public final static Property Content = new Property(1, String.class, "content", false, "CONTENT");
         public final static Property IsMe = new Property(2, boolean.class, "isMe", false, "IS_ME");
         public final static Property Succeed = new Property(3, boolean.class, "succeed", false, "SUCCEED");
-        public final static Property Date = new Property(4, java.util.Date.class, "date", false, "DATE");
+        public final static Property Seq = new Property(4, int.class, "seq", false, "SEQ");
+        public final static Property Date = new Property(5, java.util.Date.class, "date", false, "DATE");
     };
 
 
@@ -47,7 +48,8 @@ public class ChatItemDao extends AbstractDao<ChatItem, Long> {
                 "'CONTENT' TEXT NOT NULL ," + // 1: content
                 "'IS_ME' INTEGER NOT NULL ," + // 2: isMe
                 "'SUCCEED' INTEGER NOT NULL ," + // 3: succeed
-                "'DATE' INTEGER);"); // 4: date
+                "'SEQ' INTEGER NOT NULL ," + // 4: seq
+                "'DATE' INTEGER);"); // 5: date
     }
 
     /** Drops the underlying database table. */
@@ -68,10 +70,11 @@ public class ChatItemDao extends AbstractDao<ChatItem, Long> {
         stmt.bindString(2, entity.getContent());
         stmt.bindLong(3, entity.getIsMe() ? 1l: 0l);
         stmt.bindLong(4, entity.getSucceed() ? 1l: 0l);
+        stmt.bindLong(5, entity.getSeq());
  
         java.util.Date date = entity.getDate();
         if (date != null) {
-            stmt.bindLong(5, date.getTime());
+            stmt.bindLong(6, date.getTime());
         }
     }
 
@@ -89,7 +92,8 @@ public class ChatItemDao extends AbstractDao<ChatItem, Long> {
             cursor.getString(offset + 1), // content
             cursor.getShort(offset + 2) != 0, // isMe
             cursor.getShort(offset + 3) != 0, // succeed
-            cursor.isNull(offset + 4) ? null : new java.util.Date(cursor.getLong(offset + 4)) // date
+            cursor.getInt(offset + 4), // seq
+            cursor.isNull(offset + 5) ? null : new java.util.Date(cursor.getLong(offset + 5)) // date
         );
         return entity;
     }
@@ -101,7 +105,8 @@ public class ChatItemDao extends AbstractDao<ChatItem, Long> {
         entity.setContent(cursor.getString(offset + 1));
         entity.setIsMe(cursor.getShort(offset + 2) != 0);
         entity.setSucceed(cursor.getShort(offset + 3) != 0);
-        entity.setDate(cursor.isNull(offset + 4) ? null : new java.util.Date(cursor.getLong(offset + 4)));
+        entity.setSeq(cursor.getInt(offset + 4));
+        entity.setDate(cursor.isNull(offset + 5) ? null : new java.util.Date(cursor.getLong(offset + 5)));
      }
     
     /** @inheritdoc */

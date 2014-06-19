@@ -1,5 +1,6 @@
 package my.home.lehome.application;
 
+import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.service.ConnectionService;

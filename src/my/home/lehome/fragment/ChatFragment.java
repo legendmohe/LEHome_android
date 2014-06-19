@@ -32,7 +32,9 @@ import android.os.Message;
 import android.preference.CheckBoxPreference;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -85,7 +87,7 @@ public class ChatFragment extends Fragment {
 	private EditText sendCmdEdittext;
 	
 	private RecognizerDialog iatDialog;
-	private SpeechRecognizer iatRecognizer;
+//	private SpeechRecognizer iatRecognizer;
 	private boolean scriptInputMode;
 	
 	private AudioManager mAudioManager;
@@ -153,24 +155,7 @@ public class ChatFragment extends Fragment {
         cmdListview = (ListView) rootView.findViewById(R.id.chat_list);
         cmdListview.setAdapter(adapter);
 
-		sendCmdEdittext = (EditText) rootView.findViewById(R.id.send_cmd_edittext);
-		sendCmdEdittext.setOnEditorActionListener(new OnEditorActionListener() {
-			  public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-			    if (actionId == EditorInfo.IME_ACTION_DONE) {
-			    	// Perform action on key press
-					String messageString = sendCmdEdittext.getText().toString();
-					if (!messageString.trim().equals("")) {
-						MainActivity mainActivity = (MainActivity) getActivity();
-						new SendCommandAsyncTask(mainActivity).execute(messageString);
-						sendCmdEdittext.setText("");
-					}
-			      return true;
-			    } else {
-			      return false;
-			    }
-			  }
-
-			});
+		
         cmdListview.setOnScrollListener(new OnScrollListener() {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -194,7 +179,97 @@ public class ChatFragment extends Fragment {
 				topVisibleIndex = firstVisibleItem;
 			}
 		});
-    	keyboardListener = (new OnGlobalLayoutListener() {
+    	
+    	
+    	final Button clearButton = (Button) rootView.findViewById(R.id.cmd_clear_button);
+    	clearButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				sendCmdEdittext.setText("");
+			}
+		});
+        
+        final Button switchButton = (Button) rootView.findViewById(R.id.switch_input_button);
+        switchButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if (!inSpeechMode) {
+					Button switch_btn = (Button) getView().findViewById(R.id.switch_input_button);
+					switch_btn.setBackgroundResource(R.drawable.chatting_setmode_voice_btn);
+					getView().findViewById(R.id.speech_button).setVisibility(View.VISIBLE);
+					getView().findViewById(R.id.send_cmd_edittext).setVisibility(View.INVISIBLE);
+					inSpeechMode = true;
+					clearButton.setVisibility(View.GONE);
+					
+					if (keyboard_open) {
+			    		InputMethodManager inputManager = 
+			    				(InputMethodManager) getActivity().
+			    				getSystemService(Context.INPUT_METHOD_SERVICE); 
+			    		inputManager.hideSoftInputFromWindow(
+			    				getActivity().getCurrentFocus().getWindowToken(),
+			    				InputMethodManager.HIDE_NOT_ALWAYS); 
+					}
+				}else {
+					Button switch_btn = (Button) getView().findViewById(R.id.switch_input_button);
+					switch_btn.setBackgroundResource(R.drawable.chatting_setmode_msg_btn);
+					getView().findViewById(R.id.speech_button).setVisibility(View.INVISIBLE);
+					getView().findViewById(R.id.send_cmd_edittext).setVisibility(View.VISIBLE);
+					inSpeechMode = false;
+					clearButton.setVisibility(View.VISIBLE);
+				}
+			}
+		});
+        Button speechButton = (Button) rootView.findViewById(R.id.speech_button);
+        speechButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				showIatDialog();
+			}
+		});
+        
+        sendCmdEdittext = (EditText) rootView.findViewById(R.id.send_cmd_edittext);
+		sendCmdEdittext.setOnEditorActionListener(new OnEditorActionListener() {
+			  public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+			    if (actionId == EditorInfo.IME_ACTION_DONE) {
+			    	// Perform action on key press
+					String messageString = sendCmdEdittext.getText().toString();
+					if (!messageString.trim().equals("")) {
+						MainActivity mainActivity = (MainActivity) getActivity();
+						new SendCommandAsyncTask(mainActivity).execute(messageString);
+						sendCmdEdittext.setText("");
+					}
+			      return true;
+			    } else {
+			      return false;
+			    }
+			  }
+
+			});
+		sendCmdEdittext.addTextChangedListener(new TextWatcher() {
+			
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+			}
+			
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+			}
+			
+			@Override
+			public void afterTextChanged(Editable s) {
+				if (s.length() > 0) {
+					clearButton.setVisibility(View.VISIBLE);
+				}else {
+					clearButton.setVisibility(View.GONE);
+				}
+			}
+		});
+		
+		keyboardListener = (new OnGlobalLayoutListener() {
     		@Override
     		public void onGlobalLayout() {
     			int heightDiff = getView().getRootView().getHeight() - getView().getHeight();
@@ -214,44 +289,6 @@ public class ChatFragment extends Fragment {
     		}
     	});
     	rootView.getViewTreeObserver().addOnGlobalLayoutListener(keyboardListener);
-        
-        Button switchButton = (Button) rootView.findViewById(R.id.switch_input_button);
-        switchButton.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if (!inSpeechMode) {
-					Button switch_btn = (Button) getView().findViewById(R.id.switch_input_button);
-					switch_btn.setBackgroundResource(R.drawable.chatting_setmode_voice_btn);
-					getView().findViewById(R.id.speech_button).setVisibility(View.VISIBLE);
-					getView().findViewById(R.id.send_cmd_edittext).setVisibility(View.INVISIBLE);
-					inSpeechMode = true;
-					
-					if (keyboard_open) {
-			    		InputMethodManager inputManager = 
-			    				(InputMethodManager) getActivity().
-			    				getSystemService(Context.INPUT_METHOD_SERVICE); 
-			    		inputManager.hideSoftInputFromWindow(
-			    				getActivity().getCurrentFocus().getWindowToken(),
-			    				InputMethodManager.HIDE_NOT_ALWAYS); 
-					}
-				}else {
-					Button switch_btn = (Button) getView().findViewById(R.id.switch_input_button);
-					switch_btn.setBackgroundResource(R.drawable.chatting_setmode_msg_btn);
-					getView().findViewById(R.id.speech_button).setVisibility(View.INVISIBLE);
-					getView().findViewById(R.id.send_cmd_edittext).setVisibility(View.VISIBLE);
-					inSpeechMode = false;
-				}
-			}
-		});
-        Button speechButton = (Button) rootView.findViewById(R.id.speech_button);
-        speechButton.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				showIatDialog();
-			}
-		});
         
         sendProgressBar = (ProgressBar) rootView.findViewById(R.id.send_msg_progressbar);
         sendProgressBar.setVisibility(View.INVISIBLE);
@@ -316,6 +353,11 @@ public class ChatFragment extends Fragment {
             	  ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE); 
             	  ClipData clip = ClipData.newPlainText(getString(R.string.app_name), selectedString);
             	  clipboard.setPrimaryClip(clip);
+                  return true;
+              case R.id.copy_to_input:
+            	  if (!TextUtils.isEmpty(selectedString)) {
+            		  sendCmdEdittext.append(selectedString);
+            	  }
                   return true;
               default:
                     return super.onContextItemSelected(item);
@@ -407,15 +449,15 @@ public class ChatFragment extends Fragment {
 	}
 	
 	private void initMSC() {
-		iatRecognizer = SpeechRecognizer.createRecognizer(getActivity());
+//		iatRecognizer = SpeechRecognizer.createRecognizer(getActivity());
 		iatDialog = new RecognizerDialog(getActivity());
 	}
 	
 	protected void cancelRecognize()
 	{
-		if(null != iatRecognizer) {
-			iatRecognizer.cancel();
-		}
+//		if(null != iatRecognizer) {
+//			iatRecognizer.cancel();
+//		}
 	}
 	
 	public void showIatDialog()
@@ -452,6 +494,13 @@ public class ChatFragment extends Fragment {
 				    	alert.setMessage(msgString);
 				    	alert.setTitle(getResources().getString(R.string.speech_cmd_need_confirm));
 
+				    	alert.setNeutralButton(getResources().getString(R.string.com_send_to_edittext)
+				    							, new DialogInterface.OnClickListener() {
+					    	public void onClick(DialogInterface dialog, int whichButton) {
+					    		sendCmdEdittext.append(msgString);
+					    	}
+				    	});
+				    	
 				    	alert.setPositiveButton(getResources().getString(R.string.com_comfirm)
 				    							, new DialogInterface.OnClickListener() {
 					    	public void onClick(DialogInterface dialog, int whichButton) {

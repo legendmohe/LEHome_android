@@ -18,6 +18,7 @@
     <string name="com_cancel">取消</string>
     <string name="com_exec">执行</string>
     <string name="com_resend">再次发送</string>
+    <string name="com_send_to_edittext">发送到输入框</string>
     
     <string name="welcome">welcome!</string>
     <string name="pref_sub_only">只收听当前用户</string>
@@ -37,6 +38,8 @@
     <string name="add_chat_item_to_shortcut">添加到收藏</string>
     <string name="delete_shortcut_item">删除收藏</string>
     <string name="copy_item">复制消息</string>
+    <string name="copy_to_input">复制到输入框</string>
+    <string name="edittext_hint">输入命令</string>
 
     <string name="title_activity_settings">设置</string>
     <string name="local_ip_item">本机ip</string>
@@ -44,6 +47,7 @@
     <string name="add_shortcut_item">添加</string>
     <string name="copy_shortcut_item">复制</string>
     <string name="button_speech">启动识别</string>
+    <string name="button_clear">清空</string>
     <string name="msc_login_faild">讯飞语音云登陆失败</string>
     
     <string name="noti_new_msg">新消息</string>

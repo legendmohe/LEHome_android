@@ -1,6 +1,9 @@
 package my.home.lehome.activity;
 
 
+import com.baidu.android.pushservice.PushConstants;
+import com.baidu.android.pushservice.PushManager;
+
 import my.home.lehome.R;
 import my.home.lehome.application.LEHomeApplication;
 import my.home.lehome.fragment.ChatFragment;
@@ -9,6 +12,7 @@ import my.home.lehome.fragment.ShortcutFragment;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.MessageHelper;
 import my.home.lehome.helper.NetworkHelper;
+import my.home.lehome.util.PushUtils;
 import android.app.ActionBar;
 import android.content.ComponentName;
 import android.content.Context;
@@ -26,7 +30,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.igexin.sdk.PushManager;
 
 public class MainActivity extends FragmentActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -65,7 +68,9 @@ public class MainActivity extends FragmentActivity
 
     	MessageHelper.loadPref(this);
 //    	MessageHelper.setPushTag(getApplicationContext(), MessageHelper.DEVICE_ID);
-    	PushManager.getInstance().initialize(this.getApplicationContext());
+    	PushManager.startWork(getApplicationContext(),
+                PushConstants.LOGIN_TYPE_API_KEY,
+                PushUtils.getMetaValue(MainActivity.this, "api_key"));
     	
     	STOPPED = false;
 	}
@@ -183,7 +188,7 @@ public class MainActivity extends FragmentActivity
 			return true;
 		case R.id.action_exit:
 			this.finish();
-			PushManager.getInstance().stopService(this.getApplicationContext());
+			PushManager.stopWork(getApplicationContext());
 			STOPPED = true;
 			return true;
 		default:
@@ -202,7 +207,6 @@ public class MainActivity extends FragmentActivity
     		MessageHelper.delPushTag(getApplicationContext(), old_device_id);
     		MessageHelper.setPushTag(getApplicationContext(), MessageHelper.DEVICE_ID);
 		}
-    	PushManager.getInstance().initialize(this.getApplicationContext());
 //    	MessageHelper.sendServerMsgToList(getResources().getString(R.string.pref_sub_address) + ":" + ConnectionService.SUBSCRIBE_ADDRESS);
 //    	MessageHelper.sendServerMsgToList(getResources().getString(R.string.pref_pub_address) + ":" + ConnectionService.PUBLISH_ADDRESS);
     }

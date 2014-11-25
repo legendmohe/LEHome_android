@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     android:background="#000000"
     android:choiceMode="singleChoice"
-    android:dividerHeight="0dp"
+    android:dividerHeight="1dp"
+    android:stackFromBottom="true"
     tools:context="my.home.lehome.fragment.NavigationDrawerFragment" />
 

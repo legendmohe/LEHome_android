@@ -6,7 +6,6 @@ import my.home.lehome.activity.MainActivity;
 import my.home.lehome.adapter.ShortcutArrayAdapter;
 import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
-import my.home.lehome.service.ConnectionService;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -38,7 +37,7 @@ public class ShortcutFragment extends ListFragment {
         View rootView =  inflater.inflate(R.layout.shortcut_fragment, container, false); 
         if (adapter == null) {
         	adapter = new ShortcutArrayAdapter(getActivity(), R.layout.shortcut_item);
-        	adapter.setData(DBHelper.getAllShortcuts());
+        	adapter.setData(DBHelper.getAllShortcuts(this.getActivity()));
 		}
         setListAdapter(adapter);
         return rootView;
@@ -76,7 +75,7 @@ public class ShortcutFragment extends ListFragment {
             	  Shortcut shortcut = adapter.getItem(info.position);
             	  adapter.remove(shortcut);
             	  adapter.notifyDataSetChanged();
-            	  DBHelper.deleteShortcut(shortcut.getId());
+            	  DBHelper.deleteShortcut(this.getActivity(), shortcut.getId());
                   return true;
               case R.id.copy_shortcut_item:
       			  ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE); 
@@ -94,10 +93,10 @@ public class ShortcutFragment extends ListFragment {
     {
     	Shortcut shortcut = adapter.getItem(position);
     	shortcut.setInvoke_count(shortcut.getInvoke_count() + 1);
-    	DBHelper.updateShortcut(shortcut);
+    	DBHelper.updateShortcut(this.getActivity(), shortcut);
     	
         MainActivity mainActivity = (MainActivity) getActivity();
-		new SendCommandAsyncTask(mainActivity).execute(shortcut.getContent());
+		new SendCommandAsyncTask(mainActivity, shortcut.getContent()).execute();
 
         Toast.makeText(getActivity(),      
             getResources().getString(R.string.com_exec) + ":" + shortcut.getContent(),      
@@ -165,7 +164,7 @@ public class ShortcutFragment extends ListFragment {
     	shortcut.setInvoke_count(0);
     	shortcut.setWeight(1.0);
 		this.adapter.add(shortcut);
-		DBHelper.addShortcut(shortcut);
+		DBHelper.addShortcut(this.getActivity(), shortcut);
 		return true;
 	}
 }

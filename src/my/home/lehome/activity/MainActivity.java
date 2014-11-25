@@ -1,12 +1,14 @@
 package my.home.lehome.activity;
 
+
 import my.home.lehome.R;
+import my.home.lehome.application.LEHomeApplication;
 import my.home.lehome.fragment.ChatFragment;
 import my.home.lehome.fragment.NavigationDrawerFragment;
 import my.home.lehome.fragment.ShortcutFragment;
 import my.home.lehome.helper.DBHelper;
+import my.home.lehome.helper.MessageHelper;
 import my.home.lehome.helper.NetworkHelper;
-import my.home.lehome.service.ConnectionService;
 import android.app.ActionBar;
 import android.content.ComponentName;
 import android.content.Context;
@@ -19,9 +21,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import com.igexin.sdk.PushManager;
 
 public class MainActivity extends FragmentActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -35,18 +40,6 @@ public class MainActivity extends FragmentActivity
     
     private ChatFragment chatFragment;
     private ShortcutFragment shortcurFragment;
-    private ConnectionService connectionService;
-    private ServiceConnection connection = new ServiceConnection() {  
-		  
-        @Override  
-        public void onServiceDisconnected(ComponentName name) {  
-        }  
-  
-        @Override  
-        public void onServiceConnected(ComponentName name, IBinder service) {
-        	connectionService = ((ConnectionService.LocalBinder) service).getService();
-        }  
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +51,7 @@ public class MainActivity extends FragmentActivity
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         
+        
         mTitle = getTitle();
         
         // Set up the drawer.
@@ -67,28 +61,30 @@ public class MainActivity extends FragmentActivity
     }
     
     private void setupService() {
-    	DBHelper.initHelper(this);
-    	startService(new Intent(this, ConnectionService.class));
-    	this.bindService(new Intent(this, ConnectionService.class), connection, Context.BIND_AUTO_CREATE);
+//    	DBHelper.initHelper(this);
+
+    	MessageHelper.loadPref(this);
+//    	MessageHelper.setPushTag(getApplicationContext(), MessageHelper.DEVICE_ID);
+    	PushManager.getInstance().initialize(this.getApplicationContext());
+    	
     	STOPPED = false;
 	}
     
     @Override
     protected void onDestroy() {
-    	this.unbindService(connection);
     	super.onDestroy();
     };
     
     @Override
     protected void onResume() {
       super.onResume();
-      ConnectionService.activityResumed();
+      ((LEHomeApplication)getApplication()).activityVisible = true;
     }
 
     @Override
     protected void onPause() {
       super.onPause();
-      ConnectionService.activityPaused();
+      ((LEHomeApplication)getApplication()).activityVisible = false;
     }
 
     @Override
@@ -186,8 +182,8 @@ public class MainActivity extends FragmentActivity
 			Toast.makeText(this, getResources().getString(R.string.local_ip_item) + ":" + ipString, Toast.LENGTH_SHORT).show();
 			return true;
 		case R.id.action_exit:
-			stopService(new Intent(this, ConnectionService.class));
 			this.finish();
+			PushManager.getInstance().stopService(this.getApplicationContext());
 			STOPPED = true;
 			return true;
 		default:
@@ -200,25 +196,15 @@ public class MainActivity extends FragmentActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	super.onActivityResult(requestCode, resultCode, data);
-    	String old_sub_address = ConnectionService.SUBSCRIBE_ADDRESS;
-    	String old_pub_address = ConnectionService.PUBLISH_ADDRESS;
-    	loadPref();
-    	if (!old_sub_address.equals(ConnectionService.SUBSCRIBE_ADDRESS)
-    			|| !old_pub_address.equals(ConnectionService.PUBLISH_ADDRESS)) {
-    		Intent bindIntent = new Intent(this, ConnectionService.class);  
-        	this.unbindService(connection);
-        	stopService(new Intent(this, ConnectionService.class));
-        	startService(new Intent(this, ConnectionService.class));
-        	this.bindService(bindIntent, connection, Context.BIND_AUTO_CREATE);
+    	String old_device_id = MessageHelper.DEVICE_ID;
+    	MessageHelper.loadPref(this);
+    	if (!old_device_id.equals(MessageHelper.DEVICE_ID)) {
+    		MessageHelper.delPushTag(getApplicationContext(), old_device_id);
+    		MessageHelper.setPushTag(getApplicationContext(), MessageHelper.DEVICE_ID);
 		}
+    	PushManager.getInstance().initialize(this.getApplicationContext());
 //    	MessageHelper.sendServerMsgToList(getResources().getString(R.string.pref_sub_address) + ":" + ConnectionService.SUBSCRIBE_ADDRESS);
 //    	MessageHelper.sendServerMsgToList(getResources().getString(R.string.pref_pub_address) + ":" + ConnectionService.PUBLISH_ADDRESS);
-    }
-    
-    
-       
-    private void loadPref(){
-    	connectionService.loadPref();
     }
     
     @Override
@@ -239,10 +225,6 @@ public class MainActivity extends FragmentActivity
             }
         }, 2000);
     }
-
-	public ConnectionService getConnectionService() {
-		return connectionService;
-	}
 
 	public ChatFragment getChatFragment() {
 		return chatFragment;

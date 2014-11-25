@@ -31,13 +31,16 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     		beginEditTextPreference.setEnabled(false);
     		endEditTextPreference.setEnabled(false);
     	}
+        boolean is_currect = sharedPreferences.getBoolean("pref_cmd_need_correct", true);
+        ((CheckBoxPreference) findPreference("pref_cmd_need_correct")).setChecked(is_currect);
+        
         beginEditTextPreference.setSummary(sharedPreferences.getString("pref_message_begin", ""));
         endEditTextPreference.setSummary(sharedPreferences.getString("pref_message_end", ""));
         
-        EditTextPreference subEditTextPreference = (EditTextPreference) findPreference("pref_sub_address");
-        EditTextPreference pubEditTextPreference = (EditTextPreference) findPreference("pref_pub_address");
-        subEditTextPreference.setSummary(sharedPreferences.getString("pref_sub_address", ""));
-        pubEditTextPreference.setSummary(sharedPreferences.getString("pref_pub_address", ""));
+        EditTextPreference subEditTextPreference = (EditTextPreference) findPreference("pref_server_address");
+        EditTextPreference pubEditTextPreference = (EditTextPreference) findPreference("pref_bind_device");
+        subEditTextPreference.setSummary(sharedPreferences.getString("pref_server_address", ""));
+        pubEditTextPreference.setSummary(sharedPreferences.getString("pref_bind_device", ""));
         
         CheckBoxPreference confirmPreference = (CheckBoxPreference) findPreference("pref_speech_cmd_need_confirm");
         boolean need_confirm = sharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
@@ -64,7 +67,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         {
             Preference exercisesPref = findPreference(key);
             exercisesPref.setSummary(sharedPreferences.getString(key, ""));
-        }else if (key.equals("pref_pub_address") || key.equals("pref_sub_address"))
+        }else if (key.equals("pref_server_address") || key.equals("pref_bind_device"))
         {
             Preference exercisesPref = findPreference(key);
             exercisesPref.setSummary(sharedPreferences.getString(key, ""));

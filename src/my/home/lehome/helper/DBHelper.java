@@ -28,8 +28,9 @@ public class DBHelper {
 	    }
 	}
 
-	public static DaoMaster getDaoMaster()
+	public static DaoMaster getDaoMaster(Context context)
 	{
+		initHelper(context);
 	    if (daoMaster == null)
 	    {
 	    	Log.w(TAG, "initHelper must be call first.");
@@ -37,8 +38,9 @@ public class DBHelper {
 	    return daoMaster;
 	}
 
-	public static DaoSession getDaoSession()
+	public static DaoSession getDaoSession(Context context)
 	{
+		initHelper(context);
 	    if (daoSession == null)
 	    {
 	    	Log.w(TAG, "initHelper must be call first.");
@@ -46,32 +48,32 @@ public class DBHelper {
 	    return daoSession;
 	}
 	
-	public static void addChatItem(ChatItem entity) {
-		getDaoSession().getChatItemDao().insert(entity);
+	public static void addChatItem(Context context, ChatItem entity) {
+		getDaoSession(context).getChatItemDao().insert(entity);
 	}
 	
-	public static List<ChatItem> getAllChatItems() {
-		return getDaoSession().getChatItemDao().loadAll();
+	public static List<ChatItem> getAllChatItems(Context context) {
+		return getDaoSession(context).getChatItemDao().loadAll();
 	}
 	
-	public static List<ChatItem> loadLatest(int limit) {
+	public static List<ChatItem> loadLatest(Context context, int limit) {
 		if (limit <= 0) {
 			Log.w(TAG, "loadAfter invaild limit.");
 			return null;
 		}
-		QueryBuilder<ChatItem> queryBuilder = getDaoSession().getChatItemDao().queryBuilder();
+		QueryBuilder<ChatItem> queryBuilder = getDaoSession(context).getChatItemDao().queryBuilder();
 		return queryBuilder
 				.orderDesc(ChatItemDao.Properties.Id)
 				.limit(limit)
 				.list();
 	}
 	
-	public static List<ChatItem> loadBefore(long id, int limit) {
+	public static List<ChatItem> loadBefore(Context context, long id, int limit) {
 		if (limit <= 0) {
 			Log.w(TAG, "loadAfter invaild limit.");
 			return null;
 		}
-		QueryBuilder<ChatItem> queryBuilder = getDaoSession().getChatItemDao().queryBuilder();
+		QueryBuilder<ChatItem> queryBuilder = getDaoSession(context).getChatItemDao().queryBuilder();
 		return queryBuilder
 				.where(ChatItemDao.Properties.Id.lt(id))
 				.orderDesc(ChatItemDao.Properties.Id)
@@ -79,30 +81,30 @@ public class DBHelper {
 				.list();
 	}
 	
-	public static void addShortcut(Shortcut shortcut) {
-		if (shortcut.getId() == null || !hasShortcut(shortcut)) {
-			getDaoSession().getShortcutDao().insert(shortcut);
+	public static void addShortcut(Context context, Shortcut shortcut) {
+		if (shortcut.getId() == null || !hasShortcut(context, shortcut)) {
+			getDaoSession(context).getShortcutDao().insert(shortcut);
 		}
 	}
 	
-	public static void updateShortcut(Shortcut shortcut) {
-		getDaoSession().getShortcutDao().update(shortcut);
+	public static void updateShortcut(Context context, Shortcut shortcut) {
+		getDaoSession(context).getShortcutDao().update(shortcut);
 	}
 	
-	public static boolean hasShortcut(Shortcut shortcut) {
-		QueryBuilder<ChatItem> queryBuilder = getDaoSession().getChatItemDao().queryBuilder();
+	public static boolean hasShortcut(Context context, Shortcut shortcut) {
+		QueryBuilder<ChatItem> queryBuilder = getDaoSession(context).getChatItemDao().queryBuilder();
 		queryBuilder.where(ChatItemDao.Properties.Content.eq(shortcut.getContent()))
 					.limit(1);
 		return queryBuilder.buildCount().count() > 0 ? true : false;
 	}
 
-	public static List<Shortcut> getAllShortcuts() {
-		return getDaoSession().getShortcutDao().loadAll();
+	public static List<Shortcut> getAllShortcuts(Context context) {
+		return getDaoSession(context).getShortcutDao().loadAll();
 	}
 	
-	public static void deleteShortcut(long Id)
+	public static void deleteShortcut(Context context, long Id)
     {
-        QueryBuilder<Shortcut> qb = getDaoSession().getShortcutDao().queryBuilder();
+        QueryBuilder<Shortcut> qb = getDaoSession(context).getShortcutDao().queryBuilder();
         DeleteQuery<Shortcut> bd = qb.where(ShortcutDao.Properties.Id.eq(Id)).buildDelete();
         bd.executeDeleteWithoutDetachingEntities();
     }

@@ -11,7 +11,6 @@ import my.home.lehome.asynctask.LoadMoreChatItemAsyncTask;
 import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.MessageHelper;
-import my.home.lehome.service.ConnectionService;
 import my.home.lehome.util.JsonParser;
 import android.R.integer;
 import android.annotation.SuppressLint;
@@ -79,6 +78,7 @@ public class ChatFragment extends Fragment {
 	private Toast mToast;
 	public static Handler handler;
 	public static int FLAG = 1;
+	public static int TOAST = 2;
 	private int topVisibleIndex;
 	private boolean keyboard_open = false;
 	private boolean inSpeechMode = false;
@@ -109,11 +109,17 @@ public class ChatFragment extends Fragment {
             @Override 
             public void handleMessage(Message msg) { 
                 super.handleMessage(msg); 
-                ChatItem newItem = (ChatItem) msg.obj;
-                Log.d(TAG, "onSubscribalbeReceiveMsg : " + newItem.getContent());
                 if(msg.what==FLAG){ 
+                	ChatItem newItem = (ChatItem) msg.obj;
+                    Log.d(TAG, "onSubscribalbeReceiveMsg : " + newItem.getContent());
 		        	adapter.add(newItem);
                 	ChatFragment.this.scrollMyListViewToBottom();
+                }else if(msg.what == TOAST) {
+                	Toast.makeText(
+                			getActivity().getApplicationContext()
+                			, (String) msg.obj
+                			, Toast.LENGTH_SHORT)
+        			.show();
                 }
             } 
              
@@ -238,7 +244,7 @@ public class ChatFragment extends Fragment {
 					String messageString = sendCmdEdittext.getText().toString();
 					if (!messageString.trim().equals("")) {
 						MainActivity mainActivity = (MainActivity) getActivity();
-						new SendCommandAsyncTask(mainActivity).execute(messageString);
+						new SendCommandAsyncTask(mainActivity, messageString).execute();
 						sendCmdEdittext.setText("");
 					}
 			      return true;
@@ -340,14 +346,14 @@ public class ChatFragment extends Fragment {
             		  shortcut.setContent(selectedString);
             		  shortcut.setInvoke_count(0);
             		  shortcut.setWeight(1.0);
-            		  DBHelper.addShortcut(shortcut);
+            		  DBHelper.addShortcut(this.getActivity(), shortcut);
             	  }else{
             		  activity.getShortcurFragment().addShortcut(selectedString);
             	  }
                   return true;
               case R.id.resend_item:
             	  MainActivity mainActivity = (MainActivity) getActivity();
-            	  new SendCommandAsyncTask(mainActivity).execute(selectedString);
+            	  new SendCommandAsyncTask(mainActivity, selectedString).execute();
                   return true;
               case R.id.copy_item:
             	  ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE); 
@@ -417,7 +423,7 @@ public class ChatFragment extends Fragment {
     }
     
     public void resetDatas() {
-    	List<ChatItem> chatItems = DBHelper.loadLatest(CHATITEM_LOAD_LIMIT);
+    	List<ChatItem> chatItems = DBHelper.loadLatest(this.getActivity(), CHATITEM_LOAD_LIMIT);
     	if (chatItems != null) {
     		Collections.reverse(chatItems); // reverse descend items
     		adapter.setData(chatItems);
@@ -487,7 +493,7 @@ public class ChatFragment extends Fragment {
 			        boolean need_confirm = mySharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
 			        if (!need_confirm) {
 			        	MainActivity mainActivity = (MainActivity) getActivity();
-			        	new SendCommandAsyncTask(mainActivity).execute(msgString);
+			        	new SendCommandAsyncTask(mainActivity, msgString).execute();
 					}else {
 						AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
 
@@ -505,7 +511,7 @@ public class ChatFragment extends Fragment {
 				    							, new DialogInterface.OnClickListener() {
 					    	public void onClick(DialogInterface dialog, int whichButton) {
 					    		MainActivity mainActivity = (MainActivity) getActivity();
-					        	new SendCommandAsyncTask(mainActivity).execute(msgString);
+					        	new SendCommandAsyncTask(mainActivity, msgString).execute();
 					    	}
 				    	});
 

@@ -32,6 +32,7 @@ public class ChatItemArrayAdapter extends ArrayAdapter<ChatItem> {
 	        for (ChatItem item : items)
 	            add(item);
 	    }
+	    setNotifyOnChange(true);
 	    notifyDataSetChanged();
 	}
 

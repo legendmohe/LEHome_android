@@ -27,7 +27,7 @@ public class LoadMoreChatItemAsyncTask extends
 			return null;
 		}
 		long currentId = fragment.getAdapter().getItem(0).getId();
-		return DBHelper.loadBefore(currentId, params[0]);
+		return DBHelper.loadBefore(this.fragment.getActivity(), currentId, params[0]);
 	}
 	
 	@Override

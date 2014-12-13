@@ -16,6 +16,10 @@ import android.R.integer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothA2dp;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -244,7 +248,7 @@ public class ChatFragment extends Fragment {
 			
 			@Override
 			public void onClick(View v) {
-				startRecognize();
+				startRecognize(getActivity());
 			}
 		});
         
@@ -291,7 +295,7 @@ public class ChatFragment extends Fragment {
     		@Override
     		public void onGlobalLayout() {
     			int heightDiff = getView().getRootView().getHeight() - getView().getHeight();
-    			Log.d(TAG, "height" + String.valueOf(heightDiff));
+    			Log.v(TAG, "height" + String.valueOf(heightDiff));
     			if (heightDiff > 200) { // if more than 100 pixels, its probably a keyboard...
     				Log.d(TAG, "keyboard show.");
     				if (!keyboard_open) {
@@ -339,7 +343,7 @@ public class ChatFragment extends Fragment {
     	switch(item.getItemId()) {
         case R.id.voice_input:
         	scriptInputMode = true;
-        	startRecognize();
+        	startRecognize(getActivity());
         	return true;
         default:
               return super.onOptionsItemSelected(item);
@@ -427,11 +431,16 @@ public class ChatFragment extends Fragment {
     	super.onResume();
     	MessageHelper.resetUnreadCount();
 		this.resetDatas();
+		
+		this.registerBTSCO();
     }
     
     @Override
     public void onPause() {
     	super.onPause();
+    	
+    	this.unregisterBTSCO();
+    	this.closeSCO(getActivity());
     }
     
     public void resetDatas() {
@@ -466,11 +475,6 @@ public class ChatFragment extends Fragment {
 		return adapter;
 	}
 	
-//	private void initMSC() {
-////		iatRecognizer = SpeechRecognizer.createRecognizer(getActivity());
-//		iatDialog = new RecognizerDialog(getActivity());
-//	}
-	
 	protected void cancelRecognize()
 	{
 //		if(null != iatRecognizer) {
@@ -478,8 +482,18 @@ public class ChatFragment extends Fragment {
 //		}
 	}
 	
-	public void startRecognize() {
-		IatWithBTSCO();
+	public void startRecognize(Context context) {
+		SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        boolean auto_sco = mySharedPreferences.getBoolean("pref_auto_connect_sco", true);
+        Log.d(TAG, "auto_sco: " + auto_sco);
+		
+        if (auto_sco && isBTSCOConnected(context)) {
+			Log.d(TAG, "bt headset is connected. recognize with sco.");
+			IatWithBTSCO(context);
+		}else {
+			Log.d(TAG, "open iat dialog.");
+			showIatDialog();
+		}
 	}
 	
 	public void showIatDialog()
@@ -540,13 +554,14 @@ public class ChatFragment extends Fragment {
 
 				    	alert.show();
 					}
-			        if (bt_on) {
+			        if (sco_on) {
 			        	closeSCO(getActivity());
 					}
 				}
 			}
 			public void onError(SpeechError error) {
-				if (bt_on) {
+				Log.d(TAG, "iat error. ");
+				if (sco_on) {
 		        	closeSCO(getActivity());
 				}
 			}
@@ -563,44 +578,75 @@ public class ChatFragment extends Fragment {
 	 * ========================bt sco===========================
 	 */
 	
-	public BroadcastReceiver btBroadcastReceiver;
-	private boolean bt_on = false;
+//	private boolean bt_on = false;
+	private boolean sco_on = false;
 	
-	public boolean IatWithBTSCO() {
-		Context app_context = getActivity().getApplicationContext();
-		btBroadcastReceiver = new BroadcastReceiver() {
-	        @Override
-	        public void onReceive(Context context, Intent intent) {
-	            int state = intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, -1);
-	            Log.d(TAG, "Audio SCO state: " + state);
-
-	            if (AudioManager.SCO_AUDIO_STATE_CONNECTED == state) { 
-	            	bt_on = true;
-	            	showIatDialog();
-	            }else if (AudioManager.SCO_AUDIO_STATE_ERROR == state ||
-	            		  AudioManager.SCO_AUDIO_STATE_DISCONNECTED == state) {
-	            	bt_on = false;
-	            	context.unregisterReceiver(this);
-	            }
-	        }
-		};
-		app_context.registerReceiver(btBroadcastReceiver, 
-				new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
-		
-		openSCO(app_context);
-		
+	private BroadcastReceiver btBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int state = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, -1);
+            if (BluetoothHeadset.STATE_AUDIO_CONNECTED == state) { 
+            	sco_on = true;
+            	Log.d(TAG, "SCO_AUDIO_STATE_CONNECTED " + state);
+            	showIatDialog();
+            	
+//            }else if (AudioManager.SCO_AUDIO_STATE_ERROR == state) {
+//            	bt_on = false;
+//            	Log.d(TAG, "SCO_AUDIO_STATE_ERROR " + state);
+//            	closeSCO(context);
+//            	context.unregisterReceiver(this);
+//            	
+//            	showTip("bt connection faild.");
+//            	showIatDialog();
+            }else if (BluetoothHeadset.STATE_AUDIO_DISCONNECTED == state) {
+            	Log.d(TAG, "SCO_AUDIO_STATE_DISCONNECTED " + state);
+            	sco_on = false;
+//            	context.unregisterReceiver(this);
+            }
+        }
+	};;
+	
+	private boolean isBTSCOConnected(Context connect) {
+		BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+		    return false;
+		}
+		int pState = bluetoothAdapter.getProfileConnectionState(BluetoothProfile.HEADSET);
+		if (pState == BluetoothProfile.STATE_CONNECTED) {
+			return true;
+		}
+		return false;
+	}
+	
+	private void registerBTSCO() {
+		Context context = getActivity().getApplicationContext();
+		context.registerReceiver(btBroadcastReceiver, 
+				new IntentFilter(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED));
+	}
+	
+	private void unregisterBTSCO() {
+		Context context = getActivity().getApplicationContext();
+		context.unregisterReceiver(btBroadcastReceiver);
+	}
+	
+	public boolean IatWithBTSCO(Context context) {
+		openSCO(context);
 		return true;
 	}
 	
 	private void openSCO(Context context) {
 		AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-		Log.d(TAG, "connecting to bluetooth sco");
-		am.startBluetoothSco();
+		if (!am.isBluetoothScoOn()) {
+			Log.d(TAG, "connecting to bluetooth sco");
+			am.startBluetoothSco();
+		}
 	}
 	
 	private void closeSCO(Context context) {
 		AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-		Log.d(TAG, "closing bluetooth sco");
-		am.stopBluetoothSco();
+		if (am.isBluetoothScoOn()) {
+			Log.d(TAG, "closing bluetooth sco");
+			am.stopBluetoothSco();
+		}
 	}
 }

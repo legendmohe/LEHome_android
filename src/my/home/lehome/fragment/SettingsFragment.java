@@ -51,6 +51,9 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         CheckBoxPreference confirmPreference = (CheckBoxPreference) findPreference("pref_speech_cmd_need_confirm");
         boolean need_confirm = sharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
         confirmPreference.setChecked(need_confirm);
+        CheckBoxPreference btSCOPreference = (CheckBoxPreference) findPreference("pref_auto_connect_sco");
+        boolean auto_sco = sharedPreferences.getBoolean("pref_auto_connect_sco", true);
+        btSCOPreference.setChecked(auto_sco);
         
         Preference button = (Preference)findPreference("button");
         button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {

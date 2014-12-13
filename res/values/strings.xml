@@ -33,6 +33,7 @@
     <string name="pref_speech_cmd_need_confirm">语音命令后弹出确认窗口</string>
     <string name="pref_cmd_need_correct">开启模糊命令</string>
     <string name="pref_homescreen_shortcut">添加到homescreen</string>
+    <string name="pref_auto_connect_sco">自动连接蓝牙麦克风</string>
     <string name="pref_others_profile">其他功能</string>
     <string name="pref_homescreen_shortcut_smy">在homescreen添加快捷方式</string>
     

@@ -33,6 +33,10 @@
                 android:enabled="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_others_profile" >
+        <CheckBoxPreference
+            android:key="pref_auto_connect_sco"
+            android:title="@string/pref_auto_connect_sco"
+            android:defaultValue="true" />
 	    <Preference android:title="@string/pref_homescreen_shortcut"
 	                android:key="button"/>
     </PreferenceCategory>

@@ -32,6 +32,9 @@
     <string name="pref_message_end">命令尾</string>
     <string name="pref_speech_cmd_need_confirm">语音命令后弹出确认窗口</string>
     <string name="pref_cmd_need_correct">开启模糊命令</string>
+    <string name="pref_homescreen_shortcut">添加到homescreen</string>
+    <string name="pref_others_profile">其他功能</string>
+    <string name="pref_homescreen_shortcut_smy">在homescreen添加快捷方式</string>
     
     <string name="speech_cmd_need_confirm">确认发送语音命令</string>
     <string name="qs_default_input">开灯</string>
@@ -58,6 +61,6 @@
     <string name="msg_push_msg_format_error">推送消息格式出错</string>
     
     <string name="noti_new_msg">新消息</string>
-    <string name="noti_num_new_msg">你有%1$s条新消息</string>
+    <string name="noti_num_new_msg">[%1$s条新消息] </string>
     <string name="noti_bref_msg">%1$s&#8230;[点击查看]</string>
 </resources>

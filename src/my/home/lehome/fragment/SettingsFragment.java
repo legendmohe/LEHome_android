@@ -1,6 +1,11 @@
 package my.home.lehome.fragment;
 
 import my.home.lehome.R;
+import my.home.lehome.activity.MainActivity;
+import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.Intent.ShortcutIconResource;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -8,6 +13,7 @@ import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.widget.Toast;
 
 public class SettingsFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener {
 	@Override
@@ -45,6 +51,46 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         CheckBoxPreference confirmPreference = (CheckBoxPreference) findPreference("pref_speech_cmd_need_confirm");
         boolean need_confirm = sharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
         confirmPreference.setChecked(need_confirm);
+        
+        Preference button = (Preference)findPreference("button");
+        button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                        @Override
+                        public boolean onPreferenceClick(Preference arg0) { 
+                        	Intent shortcutIntent = new Intent(getActivity().getApplicationContext(), MainActivity.class);
+                            shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                            Intent addIntent = new Intent();
+                            addIntent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
+                            addIntent.putExtra(Intent.EXTRA_SHORTCUT_NAME, R.string.app_name);
+                            addIntent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE, Intent.ShortcutIconResource.fromContext(getActivity().getApplicationContext(), R.drawable.ic_launcher));
+                            
+                            addIntent.setAction("com.android.launcher.action.UNINSTALL_SHORTCUT");
+                            getActivity().sendBroadcast(addIntent);
+                            addIntent.setAction("com.android.launcher.action.INSTALL_SHORTCUT");
+                            getActivity().getApplicationContext().sendBroadcast(addIntent);
+                        	
+//                        	ShortcutIconResource icon =
+//                        		    Intent.ShortcutIconResource.fromContext(getActivity(), R.drawable.ic_launcher);
+//
+//                    		Intent intent = new Intent();
+//
+//                    		Intent launchIntent = new Intent(getActivity(), MainActivity.class);
+//
+//                    		intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, launchIntent);
+//                    		intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, R.string.app_name);
+//                    		intent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE, icon);
+//
+//							getActivity().setResult(Activity.RESULT_OK, intent);
+                            
+                			Toast.makeText(
+                					getActivity()
+                					, R.string.pref_homescreen_shortcut_smy
+                					, Toast.LENGTH_SHORT)
+                					.show();
+                            return true;
+                        }
+                    });
 	}
 	
 	@Override

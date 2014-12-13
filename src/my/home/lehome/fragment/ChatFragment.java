@@ -16,6 +16,7 @@ import android.R.integer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -76,7 +77,7 @@ public class ChatFragment extends Fragment {
 	private ChatItemArrayAdapter adapter;
 	private ProgressBar sendProgressBar;
 	private Toast mToast;
-	public static Handler handler;
+	private static Handler handler;
 	public static int FLAG = 1;
 	public static int TOAST = 2;
 	private int topVisibleIndex;
@@ -90,9 +91,6 @@ public class ChatFragment extends Fragment {
 //	private SpeechRecognizer iatRecognizer;
 	private boolean scriptInputMode;
 	
-	private AudioManager mAudioManager;
-    private ComponentName mAudioReceiver;
-	
 	public static int CHATITEM_LOAD_LIMIT = 20;
 	public static final int CHATITEM_LOWEST_INDEX = 1;
 	
@@ -101,7 +99,6 @@ public class ChatFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	setRetainInstance(true);
-    	initMSC();
     	if (adapter == null) {
         	adapter = new ChatItemArrayAdapter(this.getActivity(), R.layout.chat_item);
 		}
@@ -111,15 +108,22 @@ public class ChatFragment extends Fragment {
                 super.handleMessage(msg); 
                 if(msg.what==FLAG){ 
                 	ChatItem newItem = (ChatItem) msg.obj;
-                    Log.d(TAG, "onSubscribalbeReceiveMsg : " + newItem.getContent());
-		        	adapter.add(newItem);
-                	ChatFragment.this.scrollMyListViewToBottom();
+                	if (newItem != null) {
+                		Log.d(TAG, "onSubscribalbeReceiveMsg : " + newItem.getContent());
+                		adapter.add(newItem);
+                		ChatFragment.this.scrollMyListViewToBottom();
+					}
                 }else if(msg.what == TOAST) {
-                	Toast.makeText(
-                			getActivity().getApplicationContext()
-                			, (String) msg.obj
-                			, Toast.LENGTH_SHORT)
-        			.show();
+                	if(getActivity() != null) {
+                		Context context = getActivity().getApplicationContext();
+                		if (context != null) {
+                			Toast.makeText(
+                					context
+                					, (String) msg.obj
+                					, Toast.LENGTH_SHORT)
+                					.show();
+						}
+                	}
                 }
             } 
              
@@ -151,6 +155,14 @@ public class ChatFragment extends Fragment {
     public void onDestroy() {
     	super.onDestroy();
     }
+    
+    public static boolean sendMessage(Message msg) {
+		if (ChatFragment.handler != null) {
+	        ChatFragment.handler.sendMessage(msg);
+	        return true;
+		}
+		return false;
+	}
 
     @SuppressLint("ShowToast")
 	@Override
@@ -232,7 +244,7 @@ public class ChatFragment extends Fragment {
 			
 			@Override
 			public void onClick(View v) {
-				showIatDialog();
+				startRecognize();
 			}
 		});
         
@@ -327,7 +339,7 @@ public class ChatFragment extends Fragment {
     	switch(item.getItemId()) {
         case R.id.voice_input:
         	scriptInputMode = true;
-        	showIatDialog();
+        	startRecognize();
         	return true;
         default:
               return super.onOptionsItemSelected(item);
@@ -454,16 +466,20 @@ public class ChatFragment extends Fragment {
 		return adapter;
 	}
 	
-	private void initMSC() {
-//		iatRecognizer = SpeechRecognizer.createRecognizer(getActivity());
-		iatDialog = new RecognizerDialog(getActivity());
-	}
+//	private void initMSC() {
+////		iatRecognizer = SpeechRecognizer.createRecognizer(getActivity());
+//		iatDialog = new RecognizerDialog(getActivity());
+//	}
 	
 	protected void cancelRecognize()
 	{
 //		if(null != iatRecognizer) {
 //			iatRecognizer.cancel();
 //		}
+	}
+	
+	public void startRecognize() {
+		IatWithBTSCO();
 	}
 	
 	public void showIatDialog()
@@ -524,10 +540,15 @@ public class ChatFragment extends Fragment {
 
 				    	alert.show();
 					}
+			        if (bt_on) {
+			        	closeSCO(getActivity());
+					}
 				}
 			}
 			public void onError(SpeechError error) {
-				
+				if (bt_on) {
+		        	closeSCO(getActivity());
+				}
 			}
 			
 		});
@@ -536,5 +557,50 @@ public class ChatFragment extends Fragment {
 
 	public ProgressBar getSendProgressBar() {
 		return sendProgressBar;
+	}
+	
+	/***
+	 * ========================bt sco===========================
+	 */
+	
+	public BroadcastReceiver btBroadcastReceiver;
+	private boolean bt_on = false;
+	
+	public boolean IatWithBTSCO() {
+		Context app_context = getActivity().getApplicationContext();
+		btBroadcastReceiver = new BroadcastReceiver() {
+	        @Override
+	        public void onReceive(Context context, Intent intent) {
+	            int state = intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, -1);
+	            Log.d(TAG, "Audio SCO state: " + state);
+
+	            if (AudioManager.SCO_AUDIO_STATE_CONNECTED == state) { 
+	            	bt_on = true;
+	            	showIatDialog();
+	            }else if (AudioManager.SCO_AUDIO_STATE_ERROR == state ||
+	            		  AudioManager.SCO_AUDIO_STATE_DISCONNECTED == state) {
+	            	bt_on = false;
+	            	context.unregisterReceiver(this);
+	            }
+	        }
+		};
+		app_context.registerReceiver(btBroadcastReceiver, 
+				new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
+		
+		openSCO(app_context);
+		
+		return true;
+	}
+	
+	private void openSCO(Context context) {
+		AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+		Log.d(TAG, "connecting to bluetooth sco");
+		am.startBluetoothSco();
+	}
+	
+	private void closeSCO(Context context) {
+		AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+		Log.d(TAG, "closing bluetooth sco");
+		am.stopBluetoothSco();
 	}
 }

@@ -32,4 +32,8 @@
                 android:key="pref_message_end"
                 android:enabled="false" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_others_profile" >
+	    <Preference android:title="@string/pref_homescreen_shortcut"
+	                android:key="button"/>
+    </PreferenceCategory>
 </PreferenceScreen>

@@ -27,7 +27,7 @@ import android.widget.Toast;
 
 public class MessageHelper {
 	
-	private static final int maxNotiLen = 50;
+	private static final int maxNotiLen = 140;
 	private static int unreadMsgCount = 0;
 	public static String SERVER_ADDRESS = "";
 	public static String MESSAGE_BEGIN = "";
@@ -102,7 +102,7 @@ public class MessageHelper {
 		Message msg = new Message();
     	msg.what = ChatFragment.TOAST; 
     	msg.obj = content;
-        ChatFragment.handler.sendMessage(msg);
+        ChatFragment.sendMessage(msg);
 	}
 	
 	public static void sendServerMsgToList(int seq, String content, Context context) {
@@ -113,7 +113,7 @@ public class MessageHelper {
     	newItem.setSeq(seq);
     	DBHelper.addChatItem(context, newItem);
     	
-    	if (!((LEHomeApplication)context.getApplicationContext()).activityVisible) {
+    	if (!MainActivity.VISIBLE) {
     		unreadMsgCount++;
     		content = content.replaceAll("\\s?", "");
     		int len = content.length();
@@ -127,9 +127,10 @@ public class MessageHelper {
     					, content
     					, context);
 			}else {
+				String f_content = context.getString(R.string.noti_num_new_msg, unreadMsgCount) + content;
 				addNotification(
 						context.getString(R.string.noti_new_msg)
-						, context.getString(R.string.noti_num_new_msg, unreadMsgCount)
+						, f_content
 						, content
 						, context
 						);
@@ -137,9 +138,9 @@ public class MessageHelper {
 		}else{
 			unreadMsgCount = 0;
 			Message msg = new Message();
-	    	msg.what = ChatFragment.FLAG; 
-	    	msg.obj = newItem;
-	        ChatFragment.handler.sendMessage(msg);
+			msg.what = ChatFragment.FLAG; 
+			msg.obj = newItem;
+			ChatFragment.sendMessage(msg);
 		}
 	}
 	

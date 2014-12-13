@@ -35,6 +35,7 @@ public class MainActivity extends FragmentActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
 	public static boolean STOPPED = false;
+	public static boolean VISIBLE = false;
 
     private NavigationDrawerFragment mNavigationDrawerFragment;
     private CharSequence mTitle;
@@ -83,13 +84,13 @@ public class MainActivity extends FragmentActivity
     @Override
     protected void onResume() {
       super.onResume();
-      ((LEHomeApplication)getApplication()).activityVisible = true;
+      MainActivity.VISIBLE = true;
     }
 
     @Override
     protected void onPause() {
       super.onPause();
-      ((LEHomeApplication)getApplication()).activityVisible = false;
+      MainActivity.VISIBLE = false;
     }
 
     @Override

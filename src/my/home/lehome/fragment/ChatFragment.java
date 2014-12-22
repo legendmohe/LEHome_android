@@ -11,6 +11,7 @@ import my.home.lehome.asynctask.LoadMoreChatItemAsyncTask;
 import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.MessageHelper;
+import my.home.lehome.receiver.MediaButtonIntentReceiver;
 import my.home.lehome.util.JsonParser;
 import android.R.integer;
 import android.annotation.SuppressLint;
@@ -26,6 +27,7 @@ import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -67,7 +69,6 @@ import com.iflytek.cloud.speech.RecognizerResult;
 import com.iflytek.cloud.speech.SpeechConstant;
 import com.iflytek.cloud.speech.SpeechError;
 import com.iflytek.cloud.speech.SpeechListener;
-import com.iflytek.cloud.speech.SpeechRecognizer;
 import com.iflytek.cloud.speech.SpeechUser;
 import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
@@ -153,6 +154,10 @@ public class ChatFragment extends Fragment {
 	    		public void onEvent(int arg0, Bundle arg1) {
 	    		}
 	    });
+        
+//        ((AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE)).registerMediaButtonEventReceiver(
+//        		new ComponentName(getActivity().getPackageName(), MediaButtonIntentReceiver.class.getName())
+//        		);
     };
     
     @Override
@@ -297,7 +302,7 @@ public class ChatFragment extends Fragment {
     			int heightDiff = getView().getRootView().getHeight() - getView().getHeight();
     			Log.v(TAG, "height" + String.valueOf(heightDiff));
     			if (heightDiff > 200) { // if more than 100 pixels, its probably a keyboard...
-    				Log.d(TAG, "keyboard show.");
+    				Log.v(TAG, "keyboard show.");
     				if (!keyboard_open) {
     					ChatFragment.this.scrollMyListViewToBottom();	
     				}
@@ -406,7 +411,6 @@ public class ChatFragment extends Fragment {
 		}
     	
     	mToast.cancel();
-    	cancelRecognize();
     	if (null != iatDialog) {
 			iatDialog.cancel();
 		}
@@ -432,15 +436,15 @@ public class ChatFragment extends Fragment {
     	MessageHelper.resetUnreadCount();
 		this.resetDatas();
 		
-		this.registerBTSCO();
+		this.registerBTSCO(getActivity().getApplicationContext());
     }
     
     @Override
     public void onPause() {
     	super.onPause();
     	
-    	this.unregisterBTSCO();
-    	this.closeSCO(getActivity());
+    	this.unregisterBTSCO(getActivity().getApplicationContext());
+    	this.closeSCO(getActivity().getApplicationContext());
     }
     
     public void resetDatas() {
@@ -475,12 +479,9 @@ public class ChatFragment extends Fragment {
 		return adapter;
 	}
 	
-	protected void cancelRecognize()
-	{
-//		if(null != iatRecognizer) {
-//			iatRecognizer.cancel();
-//		}
-	}
+	/***
+	 * ========================s2t===========================
+	 */
 	
 	public void startRecognize(Context context) {
 		SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
@@ -492,14 +493,14 @@ public class ChatFragment extends Fragment {
 			IatWithBTSCO(context);
 		}else {
 			Log.d(TAG, "open iat dialog.");
-			showIatDialog();
+			showIatDialog(context);
 		}
 	}
 	
-	public void showIatDialog()
+	public void showIatDialog(final Context context)
 	{
 		if(null == iatDialog) {
-			iatDialog = new RecognizerDialog(getActivity());
+			iatDialog = new RecognizerDialog(context);
 		}
 
 		//清空Grammar_ID，防止识别后进行听写时Grammar_ID的干扰
@@ -508,6 +509,16 @@ public class ChatFragment extends Fragment {
 		iatDialog.setParameter(SpeechConstant.SAMPLE_RATE, "8000");
 		iatDialog.setParameter(SpeechConstant.ASR_PTT, "0");
 		iatDialog.setParameter(SpeechConstant.VAD_EOS, "1000");
+		iatDialog.setOnDismissListener(new OnDismissListener() {
+			
+			@Override
+			public void onDismiss(DialogInterface dialog) {
+				Log.v(TAG, "RecognizerDialog dismiss.");
+				if (sco_on) {
+		        	closeSCO(context);
+				}
+			}
+		});
 		iatDialog.setListener(new RecognizerDialogListener() {
 			@Override
 			public void onResult(RecognizerResult results, boolean isLast) {
@@ -519,13 +530,12 @@ public class ChatFragment extends Fragment {
 				final String msgString = resultString;
 				Log.d(TAG, "result: " + msgString);
 				if (!msgString.trim().equals("")) {
-					SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+					SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 			        boolean need_confirm = mySharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
 			        if (!need_confirm) {
-			        	MainActivity mainActivity = (MainActivity) getActivity();
-			        	new SendCommandAsyncTask(mainActivity, msgString).execute();
+			        	new SendCommandAsyncTask(context, msgString).execute();
 					}else {
-						AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+						AlertDialog.Builder alert = new AlertDialog.Builder(context);
 
 				    	alert.setMessage(msgString);
 				    	alert.setTitle(getResources().getString(R.string.speech_cmd_need_confirm));
@@ -540,8 +550,7 @@ public class ChatFragment extends Fragment {
 				    	alert.setPositiveButton(getResources().getString(R.string.com_comfirm)
 				    							, new DialogInterface.OnClickListener() {
 					    	public void onClick(DialogInterface dialog, int whichButton) {
-					    		MainActivity mainActivity = (MainActivity) getActivity();
-					        	new SendCommandAsyncTask(mainActivity, msgString).execute();
+					        	new SendCommandAsyncTask(context, msgString).execute();
 					    	}
 				    	});
 
@@ -554,16 +563,10 @@ public class ChatFragment extends Fragment {
 
 				    	alert.show();
 					}
-			        if (sco_on) {
-			        	closeSCO(getActivity());
-					}
 				}
 			}
 			public void onError(SpeechError error) {
 				Log.d(TAG, "iat error. ");
-				if (sco_on) {
-		        	closeSCO(getActivity());
-				}
 			}
 			
 		});
@@ -588,20 +591,10 @@ public class ChatFragment extends Fragment {
             if (BluetoothHeadset.STATE_AUDIO_CONNECTED == state) { 
             	sco_on = true;
             	Log.d(TAG, "SCO_AUDIO_STATE_CONNECTED " + state);
-            	showIatDialog();
-            	
-//            }else if (AudioManager.SCO_AUDIO_STATE_ERROR == state) {
-//            	bt_on = false;
-//            	Log.d(TAG, "SCO_AUDIO_STATE_ERROR " + state);
-//            	closeSCO(context);
-//            	context.unregisterReceiver(this);
-//            	
-//            	showTip("bt connection faild.");
-//            	showIatDialog();
+            	showIatDialog(context);
             }else if (BluetoothHeadset.STATE_AUDIO_DISCONNECTED == state) {
             	Log.d(TAG, "SCO_AUDIO_STATE_DISCONNECTED " + state);
             	sco_on = false;
-//            	context.unregisterReceiver(this);
             }
         }
 	};;
@@ -618,14 +611,12 @@ public class ChatFragment extends Fragment {
 		return false;
 	}
 	
-	private void registerBTSCO() {
-		Context context = getActivity().getApplicationContext();
+	private void registerBTSCO(Context context) {
 		context.registerReceiver(btBroadcastReceiver, 
 				new IntentFilter(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED));
 	}
 	
-	private void unregisterBTSCO() {
-		Context context = getActivity().getApplicationContext();
+	private void unregisterBTSCO(Context context) {
 		context.unregisterReceiver(btBroadcastReceiver);
 	}
 	

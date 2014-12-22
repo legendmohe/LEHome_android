@@ -54,6 +54,14 @@
             android:label="@string/title_activity_settings" >
         </activity>
 
+         <!-- <receiver
+	        android:name=".receiver.MediaButtonIntentReceiver"
+	        android:enabled="true" >
+	        <intent-filter android:priority="2147483647">
+	            <action android:name="android.intent.action.MEDIA_BUTTON" />
+	        </intent-filter>
+		</receiver> -->
+        
         <!-- push应用定义消息receiver声明 -->
         <receiver android:name=".receiver.PushMessageReceiver" >
             <intent-filter>

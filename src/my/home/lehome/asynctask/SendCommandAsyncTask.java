@@ -20,6 +20,7 @@ import my.home.lehome.helper.MessageHelper;
 
 //import org.zeromq.ZMQ;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
@@ -32,9 +33,15 @@ public class SendCommandAsyncTask extends AsyncTask<Void, String, String> {
 	private static final String TAG = "SendCommandAsyncTask";
 	private String cmdString = "";
 	private ChatFragment fragment;
+	private Context context;
 	
-	public SendCommandAsyncTask(MainActivity activity, String cmdString) {
-		this.fragment = activity.getChatFragment();
+	public SendCommandAsyncTask(Context context, String cmdString) {
+		if (context instanceof MainActivity) {
+			this.fragment = ((MainActivity)context).getChatFragment();
+		}else {
+			this.fragment = null;
+		}
+		this.context = context;
 		this.cmdString = cmdString;
 	}
 	
@@ -47,9 +54,12 @@ public class SendCommandAsyncTask extends AsyncTask<Void, String, String> {
     	newItem.setIsMe(true);
     	newItem.setSucceed(true); // always set true
     	newItem.setDate(new Date());
-    	fragment.getAdapter().add(newItem);
-        ((MainActivity)fragment.getAdapter().getContext()).getChatFragment().scrollMyListViewToBottom();
-    	DBHelper.addChatItem(this.fragment.getActivity(), newItem);
+    	DBHelper.addChatItem(this.context, newItem);
+    	
+    	if (this.fragment != null) {
+    		fragment.getAdapter().add(newItem);
+    		((MainActivity)fragment.getAdapter().getContext()).getChatFragment().scrollMyListViewToBottom();
+		}
 	}
 	
 	@Override
@@ -57,7 +67,7 @@ public class SendCommandAsyncTask extends AsyncTask<Void, String, String> {
 		Log.d(TAG, "sending: " + cmdString);
 		
 		if (TextUtils.isEmpty(MessageHelper.DEVICE_ID)) {
-			return this.fragment.getResources().getString(R.string.msg_no_deviceid);
+			return this.context.getResources().getString(R.string.msg_no_deviceid);
 		}
 		
 		String message = MessageHelper.getFormatMessage(cmdString);
@@ -95,10 +105,13 @@ public class SendCommandAsyncTask extends AsyncTask<Void, String, String> {
     	newItem.setIsMe(false);
     	newItem.setSucceed(true); // always set true
     	newItem.setDate(new Date());
-    	fragment.getAdapter().add(newItem);
-        ((MainActivity)fragment.getAdapter().getContext()).getChatFragment().scrollMyListViewToBottom();
-    	DBHelper.addChatItem(this.fragment.getActivity(), newItem);
-        this.fragment.getSendProgressBar().setVisibility(View.INVISIBLE);
+    	DBHelper.addChatItem(this.context, newItem);
+    	
+    	if (this.fragment != null) {
+    		fragment.getAdapter().add(newItem);
+    		((MainActivity)fragment.getAdapter().getContext()).getChatFragment().scrollMyListViewToBottom();
+    		this.fragment.getSendProgressBar().setVisibility(View.INVISIBLE);
+		}
     }
 
 }

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    
-    <string name="msc_app_id">53561e75</string>
 
+    <string name="msc_app_id">53561e75</string>
     <string name="app_name">LEHome</string>
     <string name="app_service_running">服务正在运行</string>
     <string name="title_section1">控制</string>
@@ -13,13 +12,11 @@
     <string name="voice_input">语音脚本</string>
     <string name="double_back_to_quit">再次点击退出程序</string>
     <string name="action_settings">设置</string>
-    
     <string name="com_comfirm">确定</string>
     <string name="com_cancel">取消</string>
     <string name="com_exec">执行</string>
     <string name="com_resend">再次发送</string>
     <string name="com_send_to_edittext">发送到输入框</string>
-    
     <string name="welcome">welcome!</string>
     <string name="pref_sub_only">只收听当前用户</string>
     <string name="pref_sub_only_summ">取消后显示所有信息</string>
@@ -36,7 +33,6 @@
     <string name="pref_auto_connect_sco">自动连接蓝牙麦克风</string>
     <string name="pref_others_profile">其他功能</string>
     <string name="pref_homescreen_shortcut_smy">在homescreen添加快捷方式</string>
-    
     <string name="speech_cmd_need_confirm">确认发送语音命令</string>
     <string name="qs_default_input">开灯</string>
     <string name="add_shortcut_item_summ">键入命令</string>
@@ -45,7 +41,6 @@
     <string name="copy_item">复制消息</string>
     <string name="copy_to_input">复制到输入框</string>
     <string name="edittext_hint">输入命令</string>
-
     <string name="title_activity_settings">设置</string>
     <string name="local_ip_item">本机ip</string>
     <string name="action_exit">退出</string>
@@ -58,10 +53,11 @@
     <string name="msg_device_binded">已绑定设备</string>
     <string name="msg_push_binded">已连接推送服务器</string>
     <string name="msg_device_bind_faild">绑定设备失败</string>
-    
     <string name="msg_push_msg_format_error">推送消息格式出错</string>
-    
     <string name="noti_new_msg">新消息</string>
     <string name="noti_num_new_msg">[%1$s条新消息] </string>
     <string name="noti_bref_msg">%1$s&#8230;[点击查看]</string>
+    <string name="title_activity_wakeup">WakeupActivity</string>
+    <string name="hello_world">Hello world!</string>
+
 </resources>

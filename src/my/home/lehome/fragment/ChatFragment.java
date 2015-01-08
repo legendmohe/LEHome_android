@@ -6,6 +6,7 @@ import java.util.List;
 
 import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
+import my.home.lehome.activity.WakeupActivity;
 import my.home.lehome.adapter.ChatItemArrayAdapter;
 import my.home.lehome.asynctask.LoadMoreChatItemAsyncTask;
 import my.home.lehome.asynctask.SendCommandAsyncTask;
@@ -81,10 +82,13 @@ public class ChatFragment extends Fragment {
 	
 	private ChatItemArrayAdapter adapter;
 	private ProgressBar sendProgressBar;
+	private Button switchButton;
+	
 	private Toast mToast;
-	private static Handler handler;
+	public static Handler handler;
 	public static int FLAG = 1;
 	public static int TOAST = 2;
+	public static int VOICE_CMD = 3;
 	private int topVisibleIndex;
 	private boolean keyboard_open = false;
 	private boolean inSpeechMode = false;
@@ -95,6 +99,7 @@ public class ChatFragment extends Fragment {
 	private RecognizerDialog iatDialog;
 //	private SpeechRecognizer iatRecognizer;
 	private boolean scriptInputMode;
+	public boolean inRecogintion = false;
 	
 	public static int CHATITEM_LOAD_LIMIT = 20;
 	public static final int CHATITEM_LOWEST_INDEX = 1;
@@ -129,6 +134,8 @@ public class ChatFragment extends Fragment {
                 					.show();
 						}
                 	}
+                }else if(msg.what == VOICE_CMD) {
+                	startRecognize(getActivity());
                 }
             } 
              
@@ -217,7 +224,7 @@ public class ChatFragment extends Fragment {
 			}
 		});
         
-        final Button switchButton = (Button) rootView.findViewById(R.id.switch_input_button);
+    	switchButton = (Button) rootView.findViewById(R.id.switch_input_button);
         switchButton.setOnClickListener(new OnClickListener() {
 			
 			@Override
@@ -433,6 +440,8 @@ public class ChatFragment extends Fragment {
     @Override
     public void onResume() {
     	super.onResume();
+    	Log.d(TAG, "onResume");
+    	
     	MessageHelper.resetUnreadCount();
 		this.resetDatas();
 		
@@ -442,7 +451,7 @@ public class ChatFragment extends Fragment {
     @Override
     public void onPause() {
     	super.onPause();
-    	
+    	Log.d(TAG, "onPause");
     	this.unregisterBTSCO(getActivity().getApplicationContext());
     	this.closeSCO(getActivity().getApplicationContext());
     }
@@ -488,6 +497,7 @@ public class ChatFragment extends Fragment {
         boolean auto_sco = mySharedPreferences.getBoolean("pref_auto_connect_sco", true);
         Log.d(TAG, "auto_sco: " + auto_sco);
 		
+        inRecogintion = true;
         if (auto_sco && isBTSCOConnected(context)) {
 			Log.d(TAG, "bt headset is connected. recognize with sco.");
 			IatWithBTSCO(context);
@@ -517,6 +527,7 @@ public class ChatFragment extends Fragment {
 				if (sco_on) {
 		        	closeSCO(context);
 				}
+				inRecogintion = false;
 			}
 		});
 		iatDialog.setListener(new RecognizerDialogListener() {
@@ -534,6 +545,7 @@ public class ChatFragment extends Fragment {
 			        boolean need_confirm = mySharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
 			        if (!need_confirm) {
 			        	new SendCommandAsyncTask(context, msgString).execute();
+			        	inRecogintion = false;
 					}else {
 						AlertDialog.Builder alert = new AlertDialog.Builder(context);
 
@@ -544,6 +556,10 @@ public class ChatFragment extends Fragment {
 				    							, new DialogInterface.OnClickListener() {
 					    	public void onClick(DialogInterface dialog, int whichButton) {
 					    		sendCmdEdittext.append(msgString);
+					    		if (inSpeechMode) {
+					    			switchButton.performClick();
+								}
+					    		inRecogintion = false;
 					    	}
 				    	});
 				    	
@@ -551,13 +567,14 @@ public class ChatFragment extends Fragment {
 				    							, new DialogInterface.OnClickListener() {
 					    	public void onClick(DialogInterface dialog, int whichButton) {
 					        	new SendCommandAsyncTask(context, msgString).execute();
+					        	inRecogintion = false;
 					    	}
 				    	});
 
 				    	alert.setNegativeButton(getResources().getString(R.string.com_cancel), 
 				    							new DialogInterface.OnClickListener() {
 				    		public void onClick(DialogInterface dialog, int whichButton) {
-				    			// Canceled.
+				    			inRecogintion = false;
 				    		}
 				    	});
 
@@ -567,6 +584,7 @@ public class ChatFragment extends Fragment {
 			}
 			public void onError(SpeechError error) {
 				Log.d(TAG, "iat error. ");
+				inRecogintion = false;
 			}
 			
 		});
@@ -591,7 +609,7 @@ public class ChatFragment extends Fragment {
             if (BluetoothHeadset.STATE_AUDIO_CONNECTED == state) { 
             	sco_on = true;
             	Log.d(TAG, "SCO_AUDIO_STATE_CONNECTED " + state);
-            	showIatDialog(context);
+            	showIatDialog(getActivity());
             }else if (BluetoothHeadset.STATE_AUDIO_DISCONNECTED == state) {
             	Log.d(TAG, "SCO_AUDIO_STATE_DISCONNECTED " + state);
             	sco_on = false;
@@ -612,11 +630,13 @@ public class ChatFragment extends Fragment {
 	}
 	
 	private void registerBTSCO(Context context) {
+		Log.d(TAG, "registerBTSCO");
 		context.registerReceiver(btBroadcastReceiver, 
 				new IntentFilter(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED));
 	}
 	
 	private void unregisterBTSCO(Context context) {
+		Log.d(TAG, "unregisterBTSCO");
 		context.unregisterReceiver(btBroadcastReceiver);
 	}
 	

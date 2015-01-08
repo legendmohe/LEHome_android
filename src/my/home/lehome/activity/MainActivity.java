@@ -21,6 +21,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -28,11 +29,15 @@ import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 
 public class MainActivity extends FragmentActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+	
+	public static final String TAG = MainActivity.class.getName();
 
 	public static boolean STOPPED = false;
 	public static boolean VISIBLE = false;
@@ -62,6 +67,11 @@ public class MainActivity extends FragmentActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+        
+        Window wind = this.getWindow();
+	    wind.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+	    wind.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+	    wind.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
     }
     
     private void setupService() {
@@ -81,16 +91,41 @@ public class MainActivity extends FragmentActivity
     	super.onDestroy();
     };
     
-    @Override
-    protected void onResume() {
-      super.onResume();
-      MainActivity.VISIBLE = true;
-    }
+	@Override
+	protected void onResume() {
+		super.onResume();
+		MainActivity.VISIBLE = true;
+
+		if (getIntent().getAction() == WakeupActivity.INTENT_VOICE_COMMAND) {
+			Window wind = this.getWindow();
+			wind.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+			wind.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+			wind.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+
+			if (mCurrentSection != 0) {
+				onNavigationDrawerItemSelected(0);
+			}
+			if (!getChatFragment().inRecogintion) {
+				Log.d(TAG, "get intent, startRecognize.");
+				Message msg = ChatFragment.handler
+						.obtainMessage(ChatFragment.VOICE_CMD);
+				ChatFragment.handler.sendMessageDelayed(msg, 500);
+			}
+		}
+	}
 
     @Override
     protected void onPause() {
       super.onPause();
       MainActivity.VISIBLE = false;
+    }
+    
+    @Override
+    protected void onNewIntent(Intent intent) {
+    	// TODO Auto-generated method stub
+    	super.onNewIntent(intent);
+    	Log.d(TAG, "onNewIntent: " + intent.getAction());
+    	setIntent(intent);
     }
 
     @Override

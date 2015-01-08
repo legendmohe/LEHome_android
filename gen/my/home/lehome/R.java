@@ -177,15 +177,16 @@ public final class R {
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
-        public static final int chat_fragment=0x7f030001;
-        public static final int chat_item=0x7f030002;
-        public static final int fragment_navigation_drawer=0x7f030003;
-        public static final int fragment_pager=0x7f030004;
-        public static final int increment_popup_dialog=0x7f030005;
-        public static final int notification=0x7f030006;
-        public static final int notification_inc=0x7f030007;
-        public static final int shortcut_fragment=0x7f030008;
-        public static final int shortcut_item=0x7f030009;
+        public static final int activity_wakeup=0x7f030001;
+        public static final int chat_fragment=0x7f030002;
+        public static final int chat_item=0x7f030003;
+        public static final int fragment_navigation_drawer=0x7f030004;
+        public static final int fragment_pager=0x7f030005;
+        public static final int increment_popup_dialog=0x7f030006;
+        public static final int notification=0x7f030007;
+        public static final int notification_inc=0x7f030008;
+        public static final int shortcut_fragment=0x7f030009;
+        public static final int shortcut_item=0x7f03000a;
     }
     public static final class menu {
         public static final int chat_item_is_me=0x7f090000;
@@ -216,6 +217,7 @@ public final class R {
         public static final int delete_shortcut_item=0x7f070024;
         public static final int double_back_to_quit=0x7f070009;
         public static final int edittext_hint=0x7f070027;
+        public static final int hello_world=0x7f070039;
         public static final int local_ip_item=0x7f070029;
         public static final int msc_app_id=0x7f070000;
         public static final int msc_login_faild=0x7f07002f;
@@ -247,6 +249,7 @@ public final class R {
         public static final int qs_default_input=0x7f070021;
         public static final int speech_cmd_need_confirm=0x7f070020;
         public static final int title_activity_settings=0x7f070028;
+        public static final int title_activity_wakeup=0x7f070038;
         public static final int title_section1=0x7f070003;
         public static final int title_section2=0x7f070004;
         public static final int title_section3=0x7f070005;

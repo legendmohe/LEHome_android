@@ -1,8 +1,11 @@
 package my.home.lehome.fragment;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
@@ -58,6 +61,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -80,6 +85,9 @@ import de.greenrobot.lehome.Shortcut;
 public class ChatFragment extends Fragment {
 	public static final String TAG = ChatFragment.class.getName();
 	
+	public static final String PrefName = "PrefFile";
+	public static final String CmdHistoryPrefName = "CommandHistory";
+	
 	private ChatItemArrayAdapter adapter;
 	private ProgressBar sendProgressBar;
 	private Button switchButton;
@@ -94,10 +102,12 @@ public class ChatFragment extends Fragment {
 	private boolean inSpeechMode = false;
 	private OnGlobalLayoutListener keyboardListener;
 	private ListView cmdListview;
-	private EditText sendCmdEdittext;
+	private AutoCompleteTextView sendCmdEdittext;
+	private ArrayAdapter<String> autoCompleteAdapter;
+	
+	private HashSet<String> autoCompleteHashSet = new HashSet<String>();
 	
 	private RecognizerDialog iatDialog;
-//	private SpeechRecognizer iatRecognizer;
 	private boolean scriptInputMode;
 	public boolean inRecogintion = false;
 	
@@ -264,7 +274,7 @@ public class ChatFragment extends Fragment {
 			}
 		});
         
-        sendCmdEdittext = (EditText) rootView.findViewById(R.id.send_cmd_edittext);
+        sendCmdEdittext = (AutoCompleteTextView) rootView.findViewById(R.id.send_cmd_edittext);
 		sendCmdEdittext.setOnEditorActionListener(new OnEditorActionListener() {
 			  public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 			    if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -273,6 +283,7 @@ public class ChatFragment extends Fragment {
 					if (!messageString.trim().equals("")) {
 						MainActivity mainActivity = (MainActivity) getActivity();
 						new SendCommandAsyncTask(mainActivity, messageString).execute();
+						ChatFragment.this.addCmdHistory(messageString);
 						sendCmdEdittext.setText("");
 					}
 			      return true;
@@ -302,6 +313,8 @@ public class ChatFragment extends Fragment {
 				}
 			}
 		});
+		
+		sendCmdEdittext.setAdapter(this.setupAutoComplete(getActivity()));
 		
 		keyboardListener = (new OnGlobalLayoutListener() {
     		@Override
@@ -382,6 +395,7 @@ public class ChatFragment extends Fragment {
               case R.id.resend_item:
             	  MainActivity mainActivity = (MainActivity) getActivity();
             	  new SendCommandAsyncTask(mainActivity, selectedString).execute();
+            	  this.addCmdHistory(selectedString);
                   return true;
               case R.id.copy_item:
             	  ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE); 
@@ -456,12 +470,50 @@ public class ChatFragment extends Fragment {
     	this.closeSCO(getActivity().getApplicationContext());
     }
     
+    @Override
+    public void onStop() {
+    	this.saveCmdHistory(getActivity());
+    	super.onStop();
+    }
+    
+    // =========================================================================================
+    
+    private ArrayAdapter<String> setupAutoComplete(Context context) {
+    	SharedPreferences pref = context.getSharedPreferences(PrefName, 0);
+    	Set<String> cmdSet = pref.getStringSet(CmdHistoryPrefName, new HashSet<String>());
+    	
+    	autoCompleteHashSet.clear();
+    	autoCompleteHashSet.addAll(cmdSet);
+    	autoCompleteAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1);
+    	autoCompleteAdapter.addAll(cmdSet);
+    	
+    	Log.d(TAG, "setupAutoCompleteArrayAdapter: " + cmdSet.size());
+    	return autoCompleteAdapter;
+    }
+    
+    private void addCmdHistory(String cmd) {
+    	if (!autoCompleteHashSet.contains(cmd)) {
+			autoCompleteHashSet.add(cmd);
+			autoCompleteAdapter.add(cmd);
+			
+			Log.d(TAG, "addCmdHistory: " + cmd);
+		}
+    }
+    
+    private void saveCmdHistory(Context context) {
+    	SharedPreferences pref = context.getSharedPreferences(PrefName, 0);
+    	SharedPreferences.Editor editor = pref.edit();
+    	editor.putStringSet(CmdHistoryPrefName, autoCompleteHashSet);
+    	editor.commit();
+    	
+    	Log.d(TAG, "saveCmdHistory: " + autoCompleteHashSet.size());
+    }
+    
     public void resetDatas() {
     	List<ChatItem> chatItems = DBHelper.loadLatest(this.getActivity(), CHATITEM_LOAD_LIMIT);
     	if (chatItems != null) {
     		Collections.reverse(chatItems); // reverse descend items
     		adapter.setData(chatItems);
-//    		ConnectionService.CURRENT_MAX_SEQ = chatItems.get(chatItems.size() - 1).getSeq();
 		}
 	}
     
@@ -545,6 +597,7 @@ public class ChatFragment extends Fragment {
 			        boolean need_confirm = mySharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
 			        if (!need_confirm) {
 			        	new SendCommandAsyncTask(context, msgString).execute();
+			        	ChatFragment.this.addCmdHistory(msgString);
 			        	inRecogintion = false;
 					}else {
 						AlertDialog.Builder alert = new AlertDialog.Builder(context);
@@ -567,6 +620,7 @@ public class ChatFragment extends Fragment {
 				    							, new DialogInterface.OnClickListener() {
 					    	public void onClick(DialogInterface dialog, int whichButton) {
 					        	new SendCommandAsyncTask(context, msgString).execute();
+					        	ChatFragment.this.addCmdHistory(msgString);
 					        	inRecogintion = false;
 					    	}
 				    	});

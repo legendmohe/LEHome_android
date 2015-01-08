@@ -85,7 +85,7 @@
                 android:textSize="@dimen/font_size"
                 android:visibility="invisible" />
 
-            <EditText
+            <AutoCompleteTextView
                 android:id="@+id/send_cmd_edittext"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

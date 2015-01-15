@@ -422,6 +422,7 @@ public class ChatFragment extends Fragment {
     
     @Override
     public void onDestroyView() {
+    	super.onDestroyView();
     	if (keyboard_open) {
     		InputMethodManager inputManager = 
     				(InputMethodManager) getActivity().
@@ -438,7 +439,6 @@ public class ChatFragment extends Fragment {
     	
     	View rootView = getView();
     	rootView.getViewTreeObserver().removeOnGlobalLayoutListener(keyboardListener);
-    	super.onDestroyView();
     }
 
     @Override
@@ -472,8 +472,8 @@ public class ChatFragment extends Fragment {
     
     @Override
     public void onStop() {
-    	this.saveCmdHistory(getActivity());
     	super.onStop();
+    	this.saveCmdHistory(getActivity());
     }
     
     // =========================================================================================

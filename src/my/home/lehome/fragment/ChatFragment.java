@@ -44,6 +44,7 @@ import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -58,6 +59,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -97,9 +99,6 @@ import de.greenrobot.lehome.Shortcut;
 public class ChatFragment extends Fragment implements SpeechDialogResultListener {
 	public static final String TAG = ChatFragment.class.getName();
 	
-	public static final String PrefName = "PrefFile";
-	public static final String CmdHistoryPrefName = "CommandHistory";
-	
 	private ChatItemArrayAdapter adapter;
 	private ProgressBar sendProgressBar;
 	private Button switchButton;
@@ -123,9 +122,12 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 	SpeechDialog mSpeechDialog;
 	private boolean scriptInputMode;
 	public boolean inRecogintion = false;
+	private int mScreenWidth = 0;
+	private int mScreenHeight = 0;
 	
-	public static int CHATITEM_LOAD_LIMIT = 20;
+	public static final int CHATITEM_LOAD_LIMIT = 20;
 	public static final int CHATITEM_LOWEST_INDEX = 1;
+	public static final float DIALOG_CANCEL_Y_PERSENT = 0.57f;
 	
     @SuppressLint("HandlerLeak")
 	@Override
@@ -269,18 +271,28 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 			@Override
 			public boolean onTouch(View arg0, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN ) {
-                    Log.d(TAG, "ACTION_DOWN.");
                     if (!mSpeechDialog.isVisible()) {
+                    	Log.d(TAG, "show mSpeechDialog");
                     	mSpeechDialog.setup(getActivity(), ChatFragment.this);
                     	mSpeechDialog.show(getFragmentManager(), TAG);
 					}
                     return true;
                 }else if (event.getAction() == MotionEvent.ACTION_UP ) {
-                    Log.d(TAG, "ACTION_UP.");
-                    mSpeechDialog.finishListening();
+                    if (event.getRawY()/mScreenHeight <= DIALOG_CANCEL_Y_PERSENT) {
+                    	Log.d(TAG, "cancelListening.");
+                    	mSpeechDialog.cancelListening();
+					}else {
+						Log.d(TAG, "finishListening.");
+						mSpeechDialog.finishListening();
+					}
                     return true;
                 }else if (event.getAction() == MotionEvent.ACTION_MOVE ) {
-                    Log.d(TAG, "ACTION_MOVE.");
+//                	Log.d(TAG, String.valueOf(event.getRawY()/mScreenHeight));
+                    if (event.getRawY()/mScreenHeight <= DIALOG_CANCEL_Y_PERSENT) {
+                    	mSpeechDialog.setReleaseCancelVisible(true);
+					}else {
+						mSpeechDialog.setReleaseCancelVisible(false);
+					}
                     return true;
                 }
 				return false;
@@ -435,6 +447,12 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     	super.onActivityCreated(savedInstanceState);
     	registerForContextMenu(cmdListview);
     	setHasOptionsMenu(true);
+    	
+    	Display display = getActivity().getWindowManager().getDefaultDisplay();
+    	Point size = new Point();
+    	display.getSize(size);
+    	mScreenWidth = size.x;
+    	mScreenHeight = size.y;
 //		scrollMyListViewToBottom();
     }
     
@@ -453,6 +471,9 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     	mToast.cancel();
     	if (null != mDialog) {
     		mDialog.dismiss();
+		}
+    	if (null != mSpeechDialog) {
+			mSpeechDialog.dismiss();
 		}
     	
     	View rootView = getView();
@@ -498,8 +519,8 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 
     
     private ArrayAdapter<String> setupAutoComplete(Context context) {
-    	SharedPreferences pref = context.getSharedPreferences(PrefName, 0);
-    	Set<String> cmdSet = pref.getStringSet(CmdHistoryPrefName, new HashSet<String>());
+    	SharedPreferences pref = context.getSharedPreferences(Constants.PREF_NAME, 0);
+    	Set<String> cmdSet = pref.getStringSet(Constants.CMD_HISTORY_PREF_NAME, new HashSet<String>());
     	
     	autoCompleteHashSet.clear();
     	autoCompleteHashSet.addAll(cmdSet);
@@ -520,9 +541,9 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     }
     
     private void saveCmdHistory(Context context) {
-    	SharedPreferences pref = context.getSharedPreferences(PrefName, 0);
+    	SharedPreferences pref = context.getSharedPreferences(Constants.PREF_NAME, 0);
     	SharedPreferences.Editor editor = pref.edit();
-    	editor.putStringSet(CmdHistoryPrefName, autoCompleteHashSet);
+    	editor.putStringSet(Constants.CMD_HISTORY_PREF_NAME, autoCompleteHashSet);
     	editor.commit();
     	
     	Log.d(TAG, "saveCmdHistory: " + autoCompleteHashSet.size());
@@ -765,6 +786,8 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 			String msgString = results.get(0);
 			new SendCommandAsyncTask(getActivity(), msgString).execute();
 			ChatFragment.this.addCmdHistory(msgString);
+		}else {
+			showTip(getString(R.string.speech_no_result));
 		}
 	}
 

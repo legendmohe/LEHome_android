@@ -66,6 +66,7 @@ public class SpeechDialog extends DialogFragment {
 	private MyVoiceRecogListener mVoiceRecogListener = new MyVoiceRecogListener();
 	
 	private TextView mStatusTextView;
+	private TextView mReleaseTextView;
 	private ProgressBar mVolumnProgressBar;
 	
 //	private List<String> mResult = null;
@@ -141,8 +142,11 @@ public class SpeechDialog extends DialogFragment {
 	    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 	    LayoutInflater inflater = getActivity().getLayoutInflater();
 	    View contentView = inflater.inflate(R.layout.speech_dialog, null);
+	    
 	    mStatusTextView = (TextView) contentView.findViewById(R.id.status_textview);
 	    mVolumnProgressBar = (ProgressBar) contentView.findViewById(R.id.volumn_progressbar);
+	    mReleaseTextView = (TextView) contentView.findViewById(R.id.speech_release_cancel_textview);
+	    
 	    builder.setView(contentView);      
 	    return builder.create();
 	}
@@ -175,6 +179,10 @@ public class SpeechDialog extends DialogFragment {
         mASREngine.setTokenApis(Constants.BAIDUVOICE_API_KEY, Constants.BAIDUVOICE_SECRET_KEY);
         mMainThreadHandler = new Handler();
         mResultListener = listener;
+	}
+	
+	public void setHintText(String content) {
+		mStatusTextView.setText(content);
 	}
 	
 	private void sendMsg(int what) {
@@ -355,6 +363,18 @@ public class SpeechDialog extends DialogFragment {
 	
 	public int currentState() {
 		return CUR_STATE;
+	}
+	
+	public void setReleaseCancelVisible(boolean visible) {
+		if (visible) {
+			mReleaseTextView.setVisibility(View.VISIBLE);
+			mStatusTextView.setVisibility(View.INVISIBLE);
+			mVolumnProgressBar.setVisibility(View.INVISIBLE);
+		}else {
+			mReleaseTextView.setVisibility(View.INVISIBLE);
+			mStatusTextView.setVisibility(View.VISIBLE);
+			mVolumnProgressBar.setVisibility(View.VISIBLE);
+		}
 	}
 
 	

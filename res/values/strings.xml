@@ -33,6 +33,7 @@
     <string name="pref_auto_connect_sco">自动连接蓝牙麦克风</string>
     <string name="pref_others_profile">其他功能</string>
     <string name="pref_homescreen_shortcut_smy">在homescreen添加快捷方式</string>
+    <string name="pref_clean_cmd_history">清空输入历史</string>
     <string name="speech_cmd_need_confirm">确认发送语音命令</string>
     <string name="qs_default_input">开灯</string>
     <string name="add_shortcut_item_summ">键入命令</string>
@@ -50,8 +51,10 @@
     <string name="button_clear">清空</string>
     <string name="msc_login_faild">讯飞语音云登陆失败</string>
     <string name="speech_start_faild">语音引擎初始化失败</string>
+    <string name="speech_release_cancel">松开取消</string>
     <string name="speech_too_short">说话时间太短</string>
     <string name="speech_error">语音识别失败</string>
+    <string name="speech_no_result">无识别结果</string>
     <string name="speech_speaking">请说话</string>
     <string name="speech_processing">正在识别</string>
     <string name="msg_no_deviceid">尚未绑定设备号</string>

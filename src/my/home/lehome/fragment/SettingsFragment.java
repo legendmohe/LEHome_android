@@ -1,9 +1,14 @@
 package my.home.lehome.fragment;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
+import my.home.lehome.util.Constants;
 import android.app.Activity;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.Intent.ShortcutIconResource;
 import android.content.SharedPreferences;
@@ -55,7 +60,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         boolean auto_sco = sharedPreferences.getBoolean("pref_auto_connect_sco", true);
         btSCOPreference.setChecked(auto_sco);
         
-        Preference button = (Preference)findPreference("button");
+        Preference button = (Preference)findPreference("homescreen_shortcut");
         button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                         @Override
                         public boolean onPreferenceClick(Preference arg0) { 
@@ -89,6 +94,24 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
                 			Toast.makeText(
                 					getActivity()
                 					, R.string.pref_homescreen_shortcut_smy
+                					, Toast.LENGTH_SHORT)
+                					.show();
+                            return true;
+                        }
+                    });
+        button = (Preference)findPreference("clean_cmd_history");
+        button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                        @Override
+                        public boolean onPreferenceClick(Preference arg0) { 
+                        	Context context = getActivity().getApplicationContext();
+                        	SharedPreferences pref = context.getSharedPreferences(Constants.PREF_NAME, 0);
+                        	SharedPreferences.Editor editor = pref.edit();
+                        	editor.putStringSet(Constants.CMD_HISTORY_PREF_NAME, new HashSet<String>());
+                        	editor.commit();
+                        	
+                			Toast.makeText(
+                					getActivity()
+                					, R.string.pref_clean_cmd_history
                 					, Toast.LENGTH_SHORT)
                 					.show();
                             return true;

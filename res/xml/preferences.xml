@@ -38,6 +38,8 @@
             android:title="@string/pref_auto_connect_sco"
             android:defaultValue="true" />
 	    <Preference android:title="@string/pref_homescreen_shortcut"
-	                android:key="button"/>
+	                android:key="homescreen_shortcut"/>
+	    <Preference android:title="@string/pref_clean_cmd_history"
+                    android:key="clean_cmd_history"/>
     </PreferenceCategory>
 </PreferenceScreen>

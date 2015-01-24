@@ -7,6 +7,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.baidu.voicerecognition.android.VoiceRecognitionConfig;
+import com.baidu.voicerecognition.android.ui.BaiduASRDigitalDialog;
+import com.baidu.voicerecognition.android.ui.DialogRecognitionListener;
+
 import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
 import my.home.lehome.activity.WakeupActivity;
@@ -16,11 +20,16 @@ import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.MessageHelper;
 import my.home.lehome.receiver.MediaButtonIntentReceiver;
+import my.home.lehome.util.Constants;
 import my.home.lehome.util.JsonParser;
+import my.home.lehome.view.SpeechDialog;
+import my.home.lehome.view.SpeechDialog.SpeechDialogResultListener;
+import my.home.lehome.view.SpeechDialog.State;
 import android.R.integer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothHeadset;
@@ -41,6 +50,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.CheckBoxPreference;
 import android.preference.PreferenceManager;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -52,8 +62,10 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.inputmethod.EditorInfo;
@@ -71,18 +83,18 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
-import com.iflytek.cloud.speech.RecognizerResult;
-import com.iflytek.cloud.speech.SpeechConstant;
-import com.iflytek.cloud.speech.SpeechError;
-import com.iflytek.cloud.speech.SpeechListener;
-import com.iflytek.cloud.speech.SpeechUser;
-import com.iflytek.cloud.ui.RecognizerDialog;
-import com.iflytek.cloud.ui.RecognizerDialogListener;
+//import com.iflytek.cloud.speech.RecognizerResult;
+//import com.iflytek.cloud.speech.SpeechConstant;
+//import com.iflytek.cloud.speech.SpeechError;
+//import com.iflytek.cloud.speech.SpeechListener;
+//import com.iflytek.cloud.speech.SpeechUser;
+//import com.iflytek.cloud.ui.RecognizerDialog;
+//import com.iflytek.cloud.ui.RecognizerDialogListener;
 
 import de.greenrobot.lehome.ChatItem;
 import de.greenrobot.lehome.Shortcut;
 
-public class ChatFragment extends Fragment {
+public class ChatFragment extends Fragment implements SpeechDialogResultListener {
 	public static final String TAG = ChatFragment.class.getName();
 	
 	public static final String PrefName = "PrefFile";
@@ -107,7 +119,8 @@ public class ChatFragment extends Fragment {
 	
 	private HashSet<String> autoCompleteHashSet = new HashSet<String>();
 	
-	private RecognizerDialog iatDialog;
+	private BaiduASRDigitalDialog mDialog;
+	SpeechDialog mSpeechDialog;
 	private boolean scriptInputMode;
 	public boolean inRecogintion = false;
 	
@@ -151,30 +164,6 @@ public class ChatFragment extends Fragment {
              
         };
         
-        SpeechUser.getUser().login(getActivity()
-        		, null
-        		, null
-        		, "appid=" + getString(R.string.msc_app_id)
-				, new SpeechListener(){
-	    		@Override
-	    		public void onCompleted(SpeechError error) {
-	    			if(error != null) {
-	    				showTip(getString(R.string.msc_login_faild));			
-	    			}
-	    		}
-	
-	    		@Override
-	    		public void onData(byte[] arg0) {
-	    		}
-	
-	    		@Override
-	    		public void onEvent(int arg0, Bundle arg1) {
-	    		}
-	    });
-        
-//        ((AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE)).registerMediaButtonEventReceiver(
-//        		new ComponentName(getActivity().getPackageName(), MediaButtonIntentReceiver.class.getName())
-//        		);
     };
     
     @Override
@@ -265,12 +254,36 @@ public class ChatFragment extends Fragment {
 				}
 			}
 		});
+        mSpeechDialog = new SpeechDialog();
         Button speechButton = (Button) rootView.findViewById(R.id.speech_button);
-        speechButton.setOnClickListener(new OnClickListener() {
-			
+//        speechButton.setOnClickListener(new OnClickListener() {
+//			
+//			@Override
+//			public void onClick(View v) {
+//				startRecognize(getActivity());
+//			}
+//		});
+        
+        speechButton.setOnTouchListener(new OnTouchListener() {
+        	
 			@Override
-			public void onClick(View v) {
-				startRecognize(getActivity());
+			public boolean onTouch(View arg0, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN ) {
+                    Log.d(TAG, "ACTION_DOWN.");
+                    if (!mSpeechDialog.isVisible()) {
+                    	mSpeechDialog.setup(getActivity(), ChatFragment.this);
+                    	mSpeechDialog.show(getFragmentManager(), TAG);
+					}
+                    return true;
+                }else if (event.getAction() == MotionEvent.ACTION_UP ) {
+                    Log.d(TAG, "ACTION_UP.");
+                    mSpeechDialog.finishListening();
+                    return true;
+                }else if (event.getAction() == MotionEvent.ACTION_MOVE ) {
+                    Log.d(TAG, "ACTION_MOVE.");
+                    return true;
+                }
+				return false;
 			}
 		});
         
@@ -344,6 +357,8 @@ public class ChatFragment extends Fragment {
         
         scrollMyListViewToBottom();
         
+        setupBaiduVoice(getActivity());
+        
         return rootView;
     }
     
@@ -405,6 +420,9 @@ public class ChatFragment extends Fragment {
               case R.id.copy_to_input:
             	  if (!TextUtils.isEmpty(selectedString)) {
             		  sendCmdEdittext.append(selectedString);
+            		  	if (inSpeechMode) {
+			    			switchButton.performClick();
+						}
             	  }
                   return true;
               default:
@@ -433,8 +451,8 @@ public class ChatFragment extends Fragment {
 		}
     	
     	mToast.cancel();
-    	if (null != iatDialog) {
-			iatDialog.cancel();
+    	if (null != mDialog) {
+    		mDialog.dismiss();
 		}
     	
     	View rootView = getView();
@@ -477,6 +495,7 @@ public class ChatFragment extends Fragment {
     }
     
     // =========================================================================================
+
     
     private ArrayAdapter<String> setupAutoComplete(Context context) {
     	SharedPreferences pref = context.getSharedPreferences(PrefName, 0);
@@ -544,6 +563,111 @@ public class ChatFragment extends Fragment {
 	 * ========================s2t===========================
 	 */
 	
+    
+    private void setupBaiduVoice(final Context context){
+    	Bundle params=new Bundle();
+    	//设置开放 API Key
+    	params.putString(BaiduASRDigitalDialog.PARAM_API_KEY, Constants.BAIDUVOICE_API_KEY);
+    	//设置开放平台 Secret Key
+    	params.putString(BaiduASRDigitalDialog.PARAM_SECRET_KEY, Constants.BAIDUVOICE_SECRET_KEY);
+    	//设置识别领域：搜索、输入、地图、音乐……，可选。默认为输入。
+    	params.putInt(BaiduASRDigitalDialog.PARAM_PROP, VoiceRecognitionConfig.PROP_INPUT);
+    	//设置语种类型：中文普通话，中文粤语，英文，可选。默认为中文普通话
+    	params.putString( BaiduASRDigitalDialog.PARAM_LANGUAGE,VoiceRecognitionConfig.LANGUAGE_CHINESE);
+    	// 设置对话框主题，可选。BaiduASRDigitalDialog ᨀ供了蓝、暗、红、绿、橙四中颜色，每种颜
+    	//色又分亮、暗两种色调。共 8 种主题，开发者可以按需选择，取值参考 BaiduASRDigitalDialog 中
+    	//前缀为 THEME_的常量。默认为亮蓝色
+    	params.putInt(BaiduASRDigitalDialog.PARAM_DIALOG_THEME, BaiduASRDigitalDialog.THEME_GREEN_LIGHTBG);
+    	
+    	params.putBoolean(BaiduASRDigitalDialog.PARAM_PARTIAL_RESULTS, false);
+    	
+    	mDialog = new BaiduASRDigitalDialog(context, params);
+    	mDialog.setDialogRecognitionListener(mRecognitionListener);
+    	mDialog.setOnDismissListener(new OnDismissListener() {
+			
+			@Override
+			public void onDismiss(DialogInterface dialog) {
+				Log.v(TAG, "RecognizerDialog dismiss.");
+				if (sco_on) {
+		        	closeSCO(context);
+				}
+				inRecogintion = false;
+			}
+		});
+    }
+	
+	private DialogRecognitionListener mRecognitionListener=new DialogRecognitionListener(){
+		 @Override
+		public void onResults(Bundle results){
+			//在 Results 中获取 Key 为 DialogRecognitionListener .RESULTS_RECOGNITION 的
+			//StringArrayList，可能为空。获取到识别结果后执行相应的业务逻辑即可，此回调会在主线程调用。
+			ArrayList<String> rs = results != null ? results.getStringArrayList(RESULTS_RECOGNITION) : null;
+			if(rs == null){
+				inRecogintion = false;
+				return;
+			}
+			//此处处理识别结果，识别结果可能有多个，按置信度从高到低排列，第一个元素是置信度最高的结果。
+			Log.d(TAG, rs.toString());
+			
+			String resultString = rs.get(0);
+			if (scriptInputMode == true) {
+				resultString = "运行脚本#" + resultString + "#";
+				scriptInputMode = false;
+			}
+			final String msgString = resultString;
+			final Context context = getActivity();
+			
+			Log.d(TAG, "result: " + msgString);
+			
+			if (!msgString.trim().equals("")) {
+				SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+		        boolean need_confirm = mySharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
+		        if (!need_confirm) {
+		        	new SendCommandAsyncTask(context, msgString).execute();
+		        	ChatFragment.this.addCmdHistory(msgString);
+		        	inRecogintion = false;
+				}else {
+					AlertDialog.Builder alert = new AlertDialog.Builder(context);
+
+			    	alert.setMessage(msgString);
+			    	alert.setTitle(getResources().getString(R.string.speech_cmd_need_confirm));
+
+			    	alert.setNeutralButton(getResources().getString(R.string.com_send_to_edittext)
+			    							, new DialogInterface.OnClickListener() {
+				    	public void onClick(DialogInterface dialog, int whichButton) {
+				    		sendCmdEdittext.append(msgString);
+				    		if (inSpeechMode) {
+				    			switchButton.performClick();
+							}
+				    		inRecogintion = false;
+				    	}
+			    	});
+			    	
+			    	alert.setPositiveButton(getResources().getString(R.string.com_comfirm)
+			    							, new DialogInterface.OnClickListener() {
+				    	public void onClick(DialogInterface dialog, int whichButton) {
+				        	new SendCommandAsyncTask(context, msgString).execute();
+				        	ChatFragment.this.addCmdHistory(msgString);
+				        	inRecogintion = false;
+				    	}
+			    	});
+
+			    	alert.setNegativeButton(getResources().getString(R.string.com_cancel), 
+			    							new DialogInterface.OnClickListener() {
+			    		public void onClick(DialogInterface dialog, int whichButton) {
+			    			inRecogintion = false;
+			    		}
+			    	});
+
+			    	alert.show();
+				}
+			}else {
+				inRecogintion = false;
+			}
+		}
+	};
+		
+	
 	public void startRecognize(Context context) {
 		SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         boolean auto_sco = mySharedPreferences.getBoolean("pref_auto_connect_sco", true);
@@ -555,94 +679,13 @@ public class ChatFragment extends Fragment {
 			IatWithBTSCO(context);
 		}else {
 			Log.d(TAG, "open iat dialog.");
-			showIatDialog(context);
+			showVoiceDialog(context);
 		}
 	}
 	
-	public void showIatDialog(final Context context)
+	public void showVoiceDialog(final Context context)
 	{
-		if(null == iatDialog) {
-			iatDialog = new RecognizerDialog(context);
-		}
-
-		//清空Grammar_ID，防止识别后进行听写时Grammar_ID的干扰
-		iatDialog.setParameter(SpeechConstant.CLOUD_GRAMMAR, null);
-		iatDialog.setParameter(SpeechConstant.DOMAIN, "iat");
-		iatDialog.setParameter(SpeechConstant.SAMPLE_RATE, "8000");
-		iatDialog.setParameter(SpeechConstant.ASR_PTT, "0");
-		iatDialog.setParameter(SpeechConstant.VAD_EOS, "1000");
-		iatDialog.setOnDismissListener(new OnDismissListener() {
-			
-			@Override
-			public void onDismiss(DialogInterface dialog) {
-				Log.v(TAG, "RecognizerDialog dismiss.");
-				if (sco_on) {
-		        	closeSCO(context);
-				}
-				inRecogintion = false;
-			}
-		});
-		iatDialog.setListener(new RecognizerDialogListener() {
-			@Override
-			public void onResult(RecognizerResult results, boolean isLast) {
-				String resultString = JsonParser.parseIatResult(results.getResultString());
-				if (scriptInputMode == true) {
-					resultString = "运行脚本#" + resultString + "#";
-					scriptInputMode = false;
-				}
-				final String msgString = resultString;
-				Log.d(TAG, "result: " + msgString);
-				if (!msgString.trim().equals("")) {
-					SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-			        boolean need_confirm = mySharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
-			        if (!need_confirm) {
-			        	new SendCommandAsyncTask(context, msgString).execute();
-			        	ChatFragment.this.addCmdHistory(msgString);
-			        	inRecogintion = false;
-					}else {
-						AlertDialog.Builder alert = new AlertDialog.Builder(context);
-
-				    	alert.setMessage(msgString);
-				    	alert.setTitle(getResources().getString(R.string.speech_cmd_need_confirm));
-
-				    	alert.setNeutralButton(getResources().getString(R.string.com_send_to_edittext)
-				    							, new DialogInterface.OnClickListener() {
-					    	public void onClick(DialogInterface dialog, int whichButton) {
-					    		sendCmdEdittext.append(msgString);
-					    		if (inSpeechMode) {
-					    			switchButton.performClick();
-								}
-					    		inRecogintion = false;
-					    	}
-				    	});
-				    	
-				    	alert.setPositiveButton(getResources().getString(R.string.com_comfirm)
-				    							, new DialogInterface.OnClickListener() {
-					    	public void onClick(DialogInterface dialog, int whichButton) {
-					        	new SendCommandAsyncTask(context, msgString).execute();
-					        	ChatFragment.this.addCmdHistory(msgString);
-					        	inRecogintion = false;
-					    	}
-				    	});
-
-				    	alert.setNegativeButton(getResources().getString(R.string.com_cancel), 
-				    							new DialogInterface.OnClickListener() {
-				    		public void onClick(DialogInterface dialog, int whichButton) {
-				    			inRecogintion = false;
-				    		}
-				    	});
-
-				    	alert.show();
-					}
-				}
-			}
-			public void onError(SpeechError error) {
-				Log.d(TAG, "iat error. ");
-				inRecogintion = false;
-			}
-			
-		});
-		iatDialog.show();
+		mDialog.show();
 	}
 
 	public ProgressBar getSendProgressBar() {
@@ -663,7 +706,7 @@ public class ChatFragment extends Fragment {
             if (BluetoothHeadset.STATE_AUDIO_CONNECTED == state) { 
             	sco_on = true;
             	Log.d(TAG, "SCO_AUDIO_STATE_CONNECTED " + state);
-            	showIatDialog(getActivity());
+            	showVoiceDialog(getActivity());
             }else if (BluetoothHeadset.STATE_AUDIO_DISCONNECTED == state) {
             	Log.d(TAG, "SCO_AUDIO_STATE_DISCONNECTED " + state);
             	sco_on = false;
@@ -713,5 +756,20 @@ public class ChatFragment extends Fragment {
 			Log.d(TAG, "closing bluetooth sco");
 			am.stopBluetoothSco();
 		}
+	}
+
+	@Override
+	public void onResult(List<String> results) {
+		Log.d(TAG, "onResult: " + results.toString());
+		if (results.size() > 0) {
+			String msgString = results.get(0);
+			new SendCommandAsyncTask(getActivity(), msgString).execute();
+			ChatFragment.this.addCmdHistory(msgString);
+		}
+	}
+
+	@Override
+	public void onDissmiss(int state) {
+		
 	}
 }

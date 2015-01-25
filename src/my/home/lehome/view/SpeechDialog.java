@@ -323,7 +323,9 @@ public class SpeechDialog extends DialogFragment {
 		case State.LISTENING:
 		case State.PROCESSING:
 			mVolumnProgressBar.setIndeterminate(false);
-			mStatusTextView.setText(R.string.speech_error);
+			int errType = msg.arg1;
+			int errCode = msg.arg2;
+			mStatusTextView.setText(errorCodeToString(errType, errCode));
 			CUR_STATE = State.ERROR;
 			if (AUTO_HIDE) {
 				sendMsg(Msg.HIDE, DIALOG_HINT_DELAY);
@@ -388,6 +390,7 @@ public class SpeechDialog extends DialogFragment {
             switch (status) {
             // 语音识别实际开始，这是真正开始识别的时间点，需在界面提示用户说话。
                 case VoiceRecognitionClient.CLIENT_STATUS_START_RECORDING:
+                	mStatusTextView.setText(R.string.speech_speaking);
                 	mMainThreadHandler.removeCallbacks(mUpdateVolume);
                 	mMainThreadHandler.postDelayed(mUpdateVolume, POWER_UPDATE_INTERVAL);
                     break;
@@ -467,5 +470,70 @@ public class SpeechDialog extends DialogFragment {
 	public interface SpeechDialogResultListener {
 		void onResult(List<String> results);
 		void onDissmiss(int state);
+	}
+	
+	/*
+	 * Error code to String
+	 */
+	public String errorCodeToString(int type, int code) {
+		switch (type) {
+		case VoiceRecognitionClient.ERROR_CLIENT:
+			switch (code) {
+			case VoiceRecognitionClient.ERROR_CLIENT_JNI_EXCEPTION:
+				return "ERROR_CLIENT_JNI_EXCEPTION";
+			case VoiceRecognitionClient.ERROR_CLIENT_NO_SPEECH:
+				return "ERROR_CLIENT_NO_SPEECH";
+			case VoiceRecognitionClient.ERROR_CLIENT_TOO_SHORT:
+				return "ERROR_CLIENT_TOO_SHORT";
+			case VoiceRecognitionClient.ERROR_CLIENT_UNKNOWN:
+				return "ERROR_CLIENT_UNKNOWN";
+			case VoiceRecognitionClient.ERROR_CLIENT_WHOLE_PROCESS_TIMEOUT:
+				return "ERROR_CLIENT_WHOLE_PROCESS_TIMEOUT";
+			default:
+				break;
+			}
+			break;
+		case VoiceRecognitionClient.ERROR_NETWORK:
+			switch (code) {
+			case VoiceRecognitionClient.ERROR_NETWORK_UNUSABLE:
+				return "ERROR_NETWORK_UNUSABLE";
+			case VoiceRecognitionClient.ERROR_NETWORK_CONNECT_ERROR:
+				return "ERROR_NETWORK_CONNECT_ERROR";
+			case VoiceRecognitionClient.ERROR_NETWORK_PARSE_ERROR:
+				return "ERROR_NETWORK_PARSE_ERROR";
+			default:
+				break;
+			}
+			break;
+		case VoiceRecognitionClient.ERROR_RECORDER:
+			switch (code) {
+			case VoiceRecognitionClient.ERROR_RECORDER_UNAVAILABLE:
+				return "ERROR_RECORDER_UNAVAILABLE";
+			case VoiceRecognitionClient.ERROR_RECORDER_INTERCEPTED:
+				return "ERROR_RECORDER_INTERCEPTED";
+			default:
+				break;
+			}
+			break;
+		case VoiceRecognitionClient.ERROR_SERVER:
+			switch (code) {
+			case VoiceRecognitionClient.ERROR_SERVER_BACKEND_ERROR:
+				return "ERROR_SERVER_BACKEND_ERROR";
+			case VoiceRecognitionClient.ERROR_SERVER_PARAMETER_ERROR:
+				return "ERROR_CLIENT_JNI_EXCEPTION";
+			case VoiceRecognitionClient.ERROR_SERVER_RECOGNITION_ERROR:
+				return "ERROR_SERVER_RECOGNITION_ERROR";
+			case VoiceRecognitionClient.ERROR_SERVER_INVALID_APP_NAME:
+				return "ERROR_SERVER_INVALID_APP_NAME";
+			case VoiceRecognitionClient.ERROR_SERVER_SPEECH_QUALITY_ERROR:
+				return "ERROR_SERVER_SPEECH_QUALITY_ERROR";
+			default:
+				break;
+			}
+			break;
+		default:
+			break;
+		}
+		return "UNKNOWN ERROR TYPE OR CODE";
 	}
 }

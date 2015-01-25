@@ -56,6 +56,7 @@
     <string name="speech_error">语音识别失败</string>
     <string name="speech_no_result">无识别结果</string>
     <string name="speech_speaking">请说话</string>
+    <string name="speech_initializing">正在初始化</string>
     <string name="speech_processing">正在识别</string>
     <string name="msg_no_deviceid">尚未绑定设备号</string>
     <string name="msg_device_binded">已绑定设备</string>

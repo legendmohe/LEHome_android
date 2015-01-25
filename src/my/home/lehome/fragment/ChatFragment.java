@@ -288,10 +288,12 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
                     return true;
                 }else if (event.getAction() == MotionEvent.ACTION_MOVE ) {
 //                	Log.d(TAG, String.valueOf(event.getRawY()/mScreenHeight));
-                    if (event.getRawY()/mScreenHeight <= DIALOG_CANCEL_Y_PERSENT) {
-                    	mSpeechDialog.setReleaseCancelVisible(true);
-					}else {
-						mSpeechDialog.setReleaseCancelVisible(false);
+                	if (mSpeechDialog != null) {
+                		if (event.getRawY()/mScreenHeight <= DIALOG_CANCEL_Y_PERSENT) {
+                			mSpeechDialog.setReleaseCancelVisible(true);
+                		}else {
+                			mSpeechDialog.setReleaseCancelVisible(false);
+                		}
 					}
                     return true;
                 }
@@ -338,8 +340,6 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 				}
 			}
 		});
-		
-		sendCmdEdittext.setAdapter(this.setupAutoComplete(getActivity()));
 		
 		keyboardListener = (new OnGlobalLayoutListener() {
     		@Override
@@ -472,7 +472,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     	if (null != mDialog) {
     		mDialog.dismiss();
 		}
-    	if (null != mSpeechDialog) {
+    	if (null != mSpeechDialog && mSpeechDialog.isVisible()) {
 			mSpeechDialog.dismiss();
 		}
     	
@@ -507,6 +507,12 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     	Log.d(TAG, "onPause");
     	this.unregisterBTSCO(getActivity().getApplicationContext());
     	this.closeSCO(getActivity().getApplicationContext());
+    }
+    
+    @Override
+    public void onStart() {
+		sendCmdEdittext.setAdapter(this.setupAutoComplete(getActivity()));
+    	super.onStart();
     }
     
     @Override

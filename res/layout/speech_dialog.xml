@@ -17,7 +17,7 @@
             android:layout_marginRight="4dp"
             android:gravity="center"
             android:shadowColor="@android:color/white"
-            android:text="@string/speech_speaking"
+            android:text="@string/speech_initializing"
             />
 
         <ProgressBar

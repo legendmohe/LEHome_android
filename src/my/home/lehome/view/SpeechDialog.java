@@ -1,5 +1,6 @@
 package my.home.lehome.view;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +59,7 @@ public class SpeechDialog extends DialogFragment {
 	private static boolean AUTO_START = true;
 	private static boolean AUTO_HIDE = true;
 	
-	private Handler mHandler;
+	private final Handler mHandler = new MyHandler(this);
 	private Handler mMainThreadHandler;
 	
 	private VoiceRecognitionClient mASREngine;
@@ -90,41 +91,53 @@ public class SpeechDialog extends DialogFragment {
             }
         }
     };
+    
+	private static class MyHandler extends Handler {
+		private final WeakReference<SpeechDialog> mSpeechDialogReference;
+		
+		public MyHandler(SpeechDialog dialog) {
+			mSpeechDialogReference = new WeakReference<SpeechDialog>(dialog);
+		}
+		
+		@Override
+		public void handleMessage(Message msg) {
+			super.handleMessage(msg);
+			Log.d(TAG, msg.toString());
+			
+			SpeechDialog dialog = mSpeechDialogReference.get();
+			switch (msg.what) {
+			case Msg.START:
+				dialog.processStartMsg(msg);
+				break;
+			case Msg.END:
+				dialog.processEndMsg(msg);
+				break;
+			case Msg.CANCEL:
+				dialog.processCancelMsg(msg);
+				break;
+			case Msg.FINISH:
+				dialog.processFinishMsg(msg);
+				break;
+			case Msg.HIDE:
+				dialog.processHideMsg(msg);
+				break;
+			case Msg.ERROR:
+				dialog.processErrorMsg(msg);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+    
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+    };
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		mHandler = new Handler(){
-			
-			@Override
-			public void handleMessage(Message msg) {
-				super.handleMessage(msg);
-				Log.d(TAG, msg.toString());
-				
-				switch (msg.what) {
-				case Msg.START:
-					processStartMsg(msg);
-					break;
-				case Msg.END:
-					processEndMsg(msg);
-					break;
-				case Msg.CANCEL:
-					processCancelMsg(msg);
-					break;
-				case Msg.FINISH:
-					processFinishMsg(msg);
-					break;
-				case Msg.HIDE:
-					processHideMsg(msg);
-					break;
-				case Msg.ERROR:
-					processErrorMsg(msg);
-					break;
-				default:
-					break;
-				}
-			}
-		};
 		return super.onCreateView(inflater, container, savedInstanceState);
 	}
 	
@@ -368,14 +381,16 @@ public class SpeechDialog extends DialogFragment {
 	}
 	
 	public void setReleaseCancelVisible(boolean visible) {
-		if (visible) {
-			mReleaseTextView.setVisibility(View.VISIBLE);
-			mStatusTextView.setVisibility(View.INVISIBLE);
-			mVolumnProgressBar.setVisibility(View.INVISIBLE);
-		}else {
-			mReleaseTextView.setVisibility(View.INVISIBLE);
-			mStatusTextView.setVisibility(View.VISIBLE);
-			mVolumnProgressBar.setVisibility(View.VISIBLE);
+		if (CUR_STATE == State.LISTENING) {
+			if (visible) {
+				mReleaseTextView.setVisibility(View.VISIBLE);
+				mStatusTextView.setVisibility(View.INVISIBLE);
+				mVolumnProgressBar.setVisibility(View.INVISIBLE);
+			}else {
+				mReleaseTextView.setVisibility(View.INVISIBLE);
+				mStatusTextView.setVisibility(View.VISIBLE);
+				mVolumnProgressBar.setVisibility(View.VISIBLE);
+			}
 		}
 	}
 
@@ -441,10 +456,11 @@ public class SpeechDialog extends DialogFragment {
         config.setProp(VoiceRecognitionConfig.PROP_SEARCH);
         config.setLanguage(VoiceRecognitionConfig.LANGUAGE_CHINESE);
 //        config.enableNLU();
+        config.setUseBlueTooth(true);
         config.enableVoicePower(true); // 音量反馈。
         config.enableBeginSoundEffect(R.raw.bdspeech_recognition_start); // 设置识别开始提示音
         config.enableEndSoundEffect(R.raw.bdspeech_speech_end); // 设置识别结束提示音
-        config.setSampleRate(VoiceRecognitionConfig.SAMPLE_RATE_8K); // 设置采样率
+//        config.setSampleRate(VoiceRecognitionConfig.SAMPLE_RATE_8K); // 设置采样率
         // 下面发起识别
         int code = mASREngine.startVoiceRecognition(mVoiceRecogListener, config);
         if (code != VoiceRecognitionClient.START_WORK_RESULT_WORKING) {

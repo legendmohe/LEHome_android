@@ -31,7 +31,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
-            android:layout_toRightOf="@+id/resend_imageview"
+            android:layout_toRightOf="@+id/resend_imagebutton"
             android:background="@drawable/chatto_bg"
             android:gravity="center_vertical"
             android:lineSpacingExtra="2dp"
@@ -40,8 +40,8 @@
             android:textSize="@dimen/font_size"
             android:autoLink="web" />
 
-        <ImageView
-            android:id="@+id/resend_imageview"
+        <ImageButton
+            android:id="@+id/resend_imagebutton"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_centerVertical="true"

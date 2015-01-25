@@ -15,6 +15,7 @@ import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
 import my.home.lehome.activity.WakeupActivity;
 import my.home.lehome.adapter.ChatItemArrayAdapter;
+import my.home.lehome.adapter.ChatItemArrayAdapter.ResendButtonClickListener;
 import my.home.lehome.asynctask.LoadMoreChatItemAsyncTask;
 import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
@@ -96,7 +97,7 @@ import android.widget.Toast;
 import de.greenrobot.lehome.ChatItem;
 import de.greenrobot.lehome.Shortcut;
 
-public class ChatFragment extends Fragment implements SpeechDialogResultListener {
+public class ChatFragment extends Fragment implements SpeechDialogResultListener, ResendButtonClickListener {
 	public static final String TAG = ChatFragment.class.getName();
 	
 	private ChatItemArrayAdapter adapter;
@@ -136,6 +137,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     	setRetainInstance(true);
     	if (adapter == null) {
         	adapter = new ChatItemArrayAdapter(this.getActivity(), R.layout.chat_item);
+        	adapter.setResendButtonClickListener(this);
 		}
     	handler = new Handler(){ 
             @Override 
@@ -272,9 +274,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 			public boolean onTouch(View arg0, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN ) {
                     if (!mSpeechDialog.isVisible()) {
-                    	Log.d(TAG, "show mSpeechDialog");
-                    	mSpeechDialog.setup(getActivity(), ChatFragment.this);
-                    	mSpeechDialog.show(getFragmentManager(), TAG);
+                    	startRecognize(getActivity());
 					}
                     return true;
                 }else if (event.getAction() == MotionEvent.ACTION_UP ) {
@@ -369,7 +369,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
         
         scrollMyListViewToBottom();
         
-        setupBaiduVoice(getActivity());
+//        setupBaiduVoice(getActivity());
         
         return rootView;
     }
@@ -498,15 +498,15 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     	MessageHelper.resetUnreadCount();
 		this.resetDatas();
 		
-		this.registerBTSCO(getActivity().getApplicationContext());
+//		this.registerBTSCO(getActivity().getApplicationContext());
     }
     
     @Override
     public void onPause() {
     	super.onPause();
     	Log.d(TAG, "onPause");
-    	this.unregisterBTSCO(getActivity().getApplicationContext());
-    	this.closeSCO(getActivity().getApplicationContext());
+//    	this.unregisterBTSCO(getActivity().getApplicationContext());
+//    	this.closeSCO(getActivity().getApplicationContext());
     }
     
     @Override
@@ -591,124 +591,124 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 	 */
 	
     
-    private void setupBaiduVoice(final Context context){
-    	Bundle params=new Bundle();
-    	//设置开放 API Key
-    	params.putString(BaiduASRDigitalDialog.PARAM_API_KEY, Constants.BAIDUVOICE_API_KEY);
-    	//设置开放平台 Secret Key
-    	params.putString(BaiduASRDigitalDialog.PARAM_SECRET_KEY, Constants.BAIDUVOICE_SECRET_KEY);
-    	//设置识别领域：搜索、输入、地图、音乐……，可选。默认为输入。
-    	params.putInt(BaiduASRDigitalDialog.PARAM_PROP, VoiceRecognitionConfig.PROP_INPUT);
-    	//设置语种类型：中文普通话，中文粤语，英文，可选。默认为中文普通话
-    	params.putString( BaiduASRDigitalDialog.PARAM_LANGUAGE,VoiceRecognitionConfig.LANGUAGE_CHINESE);
-    	// 设置对话框主题，可选。BaiduASRDigitalDialog ᨀ供了蓝、暗、红、绿、橙四中颜色，每种颜
-    	//色又分亮、暗两种色调。共 8 种主题，开发者可以按需选择，取值参考 BaiduASRDigitalDialog 中
-    	//前缀为 THEME_的常量。默认为亮蓝色
-    	params.putInt(BaiduASRDigitalDialog.PARAM_DIALOG_THEME, BaiduASRDigitalDialog.THEME_GREEN_LIGHTBG);
-    	
-    	params.putBoolean(BaiduASRDigitalDialog.PARAM_PARTIAL_RESULTS, false);
-    	
-    	mDialog = new BaiduASRDigitalDialog(context, params);
-    	mDialog.setDialogRecognitionListener(mRecognitionListener);
-    	mDialog.setOnDismissListener(new OnDismissListener() {
-			
-			@Override
-			public void onDismiss(DialogInterface dialog) {
-				Log.v(TAG, "RecognizerDialog dismiss.");
-				if (sco_on) {
-		        	closeSCO(context);
-				}
-				inRecogintion = false;
-			}
-		});
-    }
+//    private void setupBaiduVoice(final Context context){
+//    	Bundle params=new Bundle();
+//    	//设置开放 API Key
+//    	params.putString(BaiduASRDigitalDialog.PARAM_API_KEY, Constants.BAIDUVOICE_API_KEY);
+//    	//设置开放平台 Secret Key
+//    	params.putString(BaiduASRDigitalDialog.PARAM_SECRET_KEY, Constants.BAIDUVOICE_SECRET_KEY);
+//    	//设置识别领域：搜索、输入、地图、音乐……，可选。默认为输入。
+//    	params.putInt(BaiduASRDigitalDialog.PARAM_PROP, VoiceRecognitionConfig.PROP_INPUT);
+//    	//设置语种类型：中文普通话，中文粤语，英文，可选。默认为中文普通话
+//    	params.putString( BaiduASRDigitalDialog.PARAM_LANGUAGE,VoiceRecognitionConfig.LANGUAGE_CHINESE);
+//    	// 设置对话框主题，可选。BaiduASRDigitalDialog ᨀ供了蓝、暗、红、绿、橙四中颜色，每种颜
+//    	//色又分亮、暗两种色调。共 8 种主题，开发者可以按需选择，取值参考 BaiduASRDigitalDialog 中
+//    	//前缀为 THEME_的常量。默认为亮蓝色
+//    	params.putInt(BaiduASRDigitalDialog.PARAM_DIALOG_THEME, BaiduASRDigitalDialog.THEME_GREEN_LIGHTBG);
+//    	
+//    	params.putBoolean(BaiduASRDigitalDialog.PARAM_PARTIAL_RESULTS, false);
+//    	
+//    	mDialog = new BaiduASRDigitalDialog(context, params);
+//    	mDialog.setDialogRecognitionListener(mRecognitionListener);
+//    	mDialog.setOnDismissListener(new OnDismissListener() {
+//			
+//			@Override
+//			public void onDismiss(DialogInterface dialog) {
+//				Log.v(TAG, "RecognizerDialog dismiss.");
+//				if (sco_on) {
+//		        	closeSCO(context);
+//				}
+//				inRecogintion = false;
+//			}
+//		});
+//    }
 	
-	private DialogRecognitionListener mRecognitionListener=new DialogRecognitionListener(){
-		 @Override
-		public void onResults(Bundle results){
-			//在 Results 中获取 Key 为 DialogRecognitionListener .RESULTS_RECOGNITION 的
-			//StringArrayList，可能为空。获取到识别结果后执行相应的业务逻辑即可，此回调会在主线程调用。
-			ArrayList<String> rs = results != null ? results.getStringArrayList(RESULTS_RECOGNITION) : null;
-			if(rs == null){
-				inRecogintion = false;
-				return;
-			}
-			//此处处理识别结果，识别结果可能有多个，按置信度从高到低排列，第一个元素是置信度最高的结果。
-			Log.d(TAG, rs.toString());
-			
-			String resultString = rs.get(0);
-			if (scriptInputMode == true) {
-				resultString = "运行脚本#" + resultString + "#";
-				scriptInputMode = false;
-			}
-			final String msgString = resultString;
-			final Context context = getActivity();
-			
-			Log.d(TAG, "result: " + msgString);
-			
-			if (!msgString.trim().equals("")) {
-				SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		        boolean need_confirm = mySharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
-		        if (!need_confirm) {
-		        	new SendCommandAsyncTask(context, msgString).execute();
-		        	ChatFragment.this.addCmdHistory(msgString);
-		        	inRecogintion = false;
-				}else {
-					AlertDialog.Builder alert = new AlertDialog.Builder(context);
-
-			    	alert.setMessage(msgString);
-			    	alert.setTitle(getResources().getString(R.string.speech_cmd_need_confirm));
-
-			    	alert.setNeutralButton(getResources().getString(R.string.com_send_to_edittext)
-			    							, new DialogInterface.OnClickListener() {
-				    	public void onClick(DialogInterface dialog, int whichButton) {
-				    		sendCmdEdittext.append(msgString);
-				    		if (inSpeechMode) {
-				    			switchButton.performClick();
-							}
-				    		inRecogintion = false;
-				    	}
-			    	});
-			    	
-			    	alert.setPositiveButton(getResources().getString(R.string.com_comfirm)
-			    							, new DialogInterface.OnClickListener() {
-				    	public void onClick(DialogInterface dialog, int whichButton) {
-				        	new SendCommandAsyncTask(context, msgString).execute();
-				        	ChatFragment.this.addCmdHistory(msgString);
-				        	inRecogintion = false;
-				    	}
-			    	});
-
-			    	alert.setNegativeButton(getResources().getString(R.string.com_cancel), 
-			    							new DialogInterface.OnClickListener() {
-			    		public void onClick(DialogInterface dialog, int whichButton) {
-			    			inRecogintion = false;
-			    		}
-			    	});
-
-			    	alert.show();
-				}
-			}else {
-				inRecogintion = false;
-			}
-		}
-	};
+//	private DialogRecognitionListener mRecognitionListener=new DialogRecognitionListener(){
+//		 @Override
+//		public void onResults(Bundle results){
+//			//在 Results 中获取 Key 为 DialogRecognitionListener .RESULTS_RECOGNITION 的
+//			//StringArrayList，可能为空。获取到识别结果后执行相应的业务逻辑即可，此回调会在主线程调用。
+//			ArrayList<String> rs = results != null ? results.getStringArrayList(RESULTS_RECOGNITION) : null;
+//			if(rs == null){
+//				inRecogintion = false;
+//				return;
+//			}
+//			//此处处理识别结果，识别结果可能有多个，按置信度从高到低排列，第一个元素是置信度最高的结果。
+//			Log.d(TAG, rs.toString());
+//			
+//			String resultString = rs.get(0);
+//			if (scriptInputMode == true) {
+//				resultString = "运行脚本#" + resultString + "#";
+//				scriptInputMode = false;
+//			}
+//			final String msgString = resultString;
+//			final Context context = getActivity();
+//			
+//			Log.d(TAG, "result: " + msgString);
+//			
+//			if (!msgString.trim().equals("")) {
+//				SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+//		        boolean need_confirm = mySharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
+//		        if (!need_confirm) {
+//		        	new SendCommandAsyncTask(context, msgString).execute();
+//		        	ChatFragment.this.addCmdHistory(msgString);
+//		        	inRecogintion = false;
+//				}else {
+//					AlertDialog.Builder alert = new AlertDialog.Builder(context);
+//
+//			    	alert.setMessage(msgString);
+//			    	alert.setTitle(getResources().getString(R.string.speech_cmd_need_confirm));
+//
+//			    	alert.setNeutralButton(getResources().getString(R.string.com_send_to_edittext)
+//			    							, new DialogInterface.OnClickListener() {
+//				    	public void onClick(DialogInterface dialog, int whichButton) {
+//				    		sendCmdEdittext.append(msgString);
+//				    		if (inSpeechMode) {
+//				    			switchButton.performClick();
+//							}
+//				    		inRecogintion = false;
+//				    	}
+//			    	});
+//			    	
+//			    	alert.setPositiveButton(getResources().getString(R.string.com_comfirm)
+//			    							, new DialogInterface.OnClickListener() {
+//				    	public void onClick(DialogInterface dialog, int whichButton) {
+//				        	new SendCommandAsyncTask(context, msgString).execute();
+//				        	ChatFragment.this.addCmdHistory(msgString);
+//				        	inRecogintion = false;
+//				    	}
+//			    	});
+//
+//			    	alert.setNegativeButton(getResources().getString(R.string.com_cancel), 
+//			    							new DialogInterface.OnClickListener() {
+//			    		public void onClick(DialogInterface dialog, int whichButton) {
+//			    			inRecogintion = false;
+//			    		}
+//			    	});
+//
+//			    	alert.show();
+//				}
+//			}else {
+//				inRecogintion = false;
+//			}
+//		}
+//	};
 		
 	
-	public void startRecognize(Context context) {
-		SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        boolean auto_sco = mySharedPreferences.getBoolean("pref_auto_connect_sco", true);
-        Log.d(TAG, "auto_sco: " + auto_sco);
-		
-        inRecogintion = true;
-        if (auto_sco && isBTSCOConnected(context)) {
-			Log.d(TAG, "bt headset is connected. recognize with sco.");
-			IatWithBTSCO(context);
-		}else {
-			Log.d(TAG, "open iat dialog.");
-			showVoiceDialog(context);
-		}
-	}
+//	public void startRecognize(Context context) {
+//		SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+//        boolean auto_sco = mySharedPreferences.getBoolean("pref_auto_connect_sco", true);
+//        Log.d(TAG, "auto_sco: " + auto_sco);
+//		
+//        inRecogintion = true;
+//        if (auto_sco && isBTSCOConnected(context)) {
+//			Log.d(TAG, "bt headset is connected. recognize with sco.");
+//			IatWithBTSCO(context);
+//		}else {
+//			Log.d(TAG, "open iat dialog.");
+//			showVoiceDialog(context);
+//		}
+//	}
 	
 	public void showVoiceDialog(final Context context)
 	{
@@ -724,81 +724,154 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 	 */
 	
 //	private boolean bt_on = false;
-	private boolean sco_on = false;
+//	private boolean sco_on = false;
+//	
+//	private BroadcastReceiver btBroadcastReceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            int state = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, -1);
+//            if (BluetoothHeadset.STATE_AUDIO_CONNECTED == state) { 
+//            	sco_on = true;
+//            	Log.d(TAG, "SCO_AUDIO_STATE_CONNECTED " + state);
+//            	showVoiceDialog(getActivity());
+//            }else if (BluetoothHeadset.STATE_AUDIO_DISCONNECTED == state) {
+//            	Log.d(TAG, "SCO_AUDIO_STATE_DISCONNECTED " + state);
+//            	sco_on = false;
+//            }
+//        }
+//	};;
+//	
+//	private boolean isBTSCOConnected(Context connect) {
+//		BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//		if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+//		    return false;
+//		}
+//		int pState = bluetoothAdapter.getProfileConnectionState(BluetoothProfile.HEADSET);
+//		if (pState == BluetoothProfile.STATE_CONNECTED) {
+//			return true;
+//		}
+//		return false;
+//	}
+//	
+//	private void registerBTSCO(Context context) {
+//		Log.d(TAG, "registerBTSCO");
+//		context.registerReceiver(btBroadcastReceiver, 
+//				new IntentFilter(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED));
+//	}
+//	
+//	private void unregisterBTSCO(Context context) {
+//		Log.d(TAG, "unregisterBTSCO");
+//		context.unregisterReceiver(btBroadcastReceiver);
+//	}
+//	
+//	public boolean IatWithBTSCO(Context context) {
+//		openSCO(context);
+//		return true;
+//	}
+//	
+//	private void openSCO(Context context) {
+//		AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+//		if (!am.isBluetoothScoOn()) {
+//			Log.d(TAG, "connecting to bluetooth sco");
+//			am.startBluetoothSco();
+//		}
+//	}
+//	
+//	private void closeSCO(Context context) {
+//		AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+//		if (am.isBluetoothScoOn()) {
+//			Log.d(TAG, "closing bluetooth sco");
+//			am.stopBluetoothSco();
+//		}
+//	}
 	
-	private BroadcastReceiver btBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int state = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, -1);
-            if (BluetoothHeadset.STATE_AUDIO_CONNECTED == state) { 
-            	sco_on = true;
-            	Log.d(TAG, "SCO_AUDIO_STATE_CONNECTED " + state);
-            	showVoiceDialog(getActivity());
-            }else if (BluetoothHeadset.STATE_AUDIO_DISCONNECTED == state) {
-            	Log.d(TAG, "SCO_AUDIO_STATE_DISCONNECTED " + state);
-            	sco_on = false;
-            }
-        }
-	};;
+	/*
+	 * Speech Dialog
+	 */
 	
-	private boolean isBTSCOConnected(Context connect) {
-		BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-		if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
-		    return false;
-		}
-		int pState = bluetoothAdapter.getProfileConnectionState(BluetoothProfile.HEADSET);
-		if (pState == BluetoothProfile.STATE_CONNECTED) {
-			return true;
-		}
-		return false;
-	}
-	
-	private void registerBTSCO(Context context) {
-		Log.d(TAG, "registerBTSCO");
-		context.registerReceiver(btBroadcastReceiver, 
-				new IntentFilter(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED));
-	}
-	
-	private void unregisterBTSCO(Context context) {
-		Log.d(TAG, "unregisterBTSCO");
-		context.unregisterReceiver(btBroadcastReceiver);
-	}
-	
-	public boolean IatWithBTSCO(Context context) {
-		openSCO(context);
-		return true;
-	}
-	
-	private void openSCO(Context context) {
-		AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-		if (!am.isBluetoothScoOn()) {
-			Log.d(TAG, "connecting to bluetooth sco");
-			am.startBluetoothSco();
-		}
-	}
-	
-	private void closeSCO(Context context) {
-		AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-		if (am.isBluetoothScoOn()) {
-			Log.d(TAG, "closing bluetooth sco");
-			am.stopBluetoothSco();
-		}
+	public void startRecognize(Context context) {
+    	Log.d(TAG, "show mSpeechDialog");
+    	
+    	inRecogintion = true;
+    	mSpeechDialog.setup(context, ChatFragment.this);
+    	mSpeechDialog.show(getFragmentManager(), TAG);
 	}
 
 	@Override
 	public void onResult(List<String> results) {
 		Log.d(TAG, "onResult: " + results.toString());
-		if (results.size() > 0) {
-			String msgString = results.get(0);
-			new SendCommandAsyncTask(getActivity(), msgString).execute();
-			ChatFragment.this.addCmdHistory(msgString);
-		}else {
+		if (results.size() == 0) {
 			showTip(getString(R.string.speech_no_result));
+			return;
+		}
+		
+		String resultString = results.get(0);
+		if (scriptInputMode == true) {
+			resultString = "运行脚本#" + resultString + "#";
+			scriptInputMode = false;
+		}
+		final String msgString = resultString;
+		final Context context = getActivity();
+		
+		Log.d(TAG, "result: " + msgString);
+		
+		if (!msgString.trim().equals("")) {
+			SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+	        boolean need_confirm = mySharedPreferences.getBoolean("pref_speech_cmd_need_confirm", true);
+	        if (!need_confirm) {
+	        	new SendCommandAsyncTask(context, msgString).execute();
+	        	ChatFragment.this.addCmdHistory(msgString);
+	        	inRecogintion = false;
+			}else {
+				AlertDialog.Builder alert = new AlertDialog.Builder(context);
+
+		    	alert.setMessage(msgString);
+		    	alert.setTitle(getResources().getString(R.string.speech_cmd_need_confirm));
+
+		    	alert.setNeutralButton(getResources().getString(R.string.com_send_to_edittext)
+		    							, new DialogInterface.OnClickListener() {
+			    	public void onClick(DialogInterface dialog, int whichButton) {
+			    		sendCmdEdittext.append(msgString);
+			    		if (inSpeechMode) {
+			    			switchButton.performClick();
+						}
+			    		inRecogintion = false;
+			    	}
+		    	});
+		    	
+		    	alert.setPositiveButton(getResources().getString(R.string.com_comfirm)
+		    							, new DialogInterface.OnClickListener() {
+			    	public void onClick(DialogInterface dialog, int whichButton) {
+			        	new SendCommandAsyncTask(context, msgString).execute();
+			        	ChatFragment.this.addCmdHistory(msgString);
+			        	inRecogintion = false;
+			    	}
+		    	});
+
+		    	alert.setNegativeButton(getResources().getString(R.string.com_cancel), 
+		    							new DialogInterface.OnClickListener() {
+		    		public void onClick(DialogInterface dialog, int whichButton) {
+		    			inRecogintion = false;
+		    		}
+		    	});
+
+		    	alert.show();
+			}
+		}else {
+			inRecogintion = false;
 		}
 	}
 
 	@Override
 	public void onDissmiss(int state) {
-		
+		inRecogintion = false;
+	}
+
+	@Override
+	public void onResendButtonClicked(int pos) {
+		ChatItem item = this.getAdapter().getItem(pos);
+		MainActivity mainActivity = (MainActivity) getActivity();
+  	  	new SendCommandAsyncTask(mainActivity, item.getContent()).execute();
+  	  	this.addCmdHistory(item.getContent());
 	}
 }

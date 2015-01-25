@@ -142,7 +142,7 @@ public final class R {
         public static final int recommend_pro2=0x7f0b0031;
         public static final int recommend_pro3=0x7f0b0037;
         public static final int recommend_pro4=0x7f0b003d;
-        public static final int resend_imageview=0x7f0b000e;
+        public static final int resend_imagebutton=0x7f0b000e;
         public static final int resend_item=0x7f0b0068;
         public static final int send_cmd_edittext=0x7f0b0008;
         public static final int send_cmd_layout=0x7f0b0004;

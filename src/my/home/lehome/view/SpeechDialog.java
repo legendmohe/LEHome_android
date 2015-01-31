@@ -105,6 +105,10 @@ public class SpeechDialog extends DialogFragment {
 			Log.d(TAG, msg.toString());
 			
 			SpeechDialog dialog = mSpeechDialogReference.get();
+			if (dialog == null) {
+				return;
+			}
+			
 			switch (msg.what) {
 			case Msg.START:
 				dialog.processStartMsg(msg);

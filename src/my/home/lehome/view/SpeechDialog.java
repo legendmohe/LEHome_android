@@ -70,6 +70,7 @@ public class SpeechDialog extends DialogFragment {
 	private TextView mReleaseTextView;
 	private ProgressBar mVolumnProgressBar;
 	
+	private boolean mUseBluetooth = false;
 //	private List<String> mResult = null;
 	
     private static final int POWER_UPDATE_INTERVAL = 50;
@@ -460,7 +461,7 @@ public class SpeechDialog extends DialogFragment {
         config.setProp(VoiceRecognitionConfig.PROP_SEARCH);
         config.setLanguage(VoiceRecognitionConfig.LANGUAGE_CHINESE);
 //        config.enableNLU();
-        config.setUseBlueTooth(true);
+        config.setUseBlueTooth(ismUseBluetooth());
         config.enableVoicePower(true); // 音量反馈。
         config.enableBeginSoundEffect(R.raw.bdspeech_recognition_start); // 设置识别开始提示音
         config.enableEndSoundEffect(R.raw.bdspeech_speech_end); // 设置识别结束提示音
@@ -555,5 +556,13 @@ public class SpeechDialog extends DialogFragment {
 			break;
 		}
 		return "UNKNOWN ERROR TYPE OR CODE";
+	}
+
+	public boolean ismUseBluetooth() {
+		return mUseBluetooth;
+	}
+
+	public void setmUseBluetooth(boolean mUseBluetooth) {
+		this.mUseBluetooth = mUseBluetooth;
 	}
 }

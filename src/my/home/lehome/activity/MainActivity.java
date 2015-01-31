@@ -107,9 +107,9 @@ public class MainActivity extends FragmentActivity
 			}
 			if (!getChatFragment().inRecogintion) {
 				Log.d(TAG, "get intent, startRecognize.");
-				Message msg = ChatFragment.handler
+				Message msg = ChatFragment.mHandler
 						.obtainMessage(ChatFragment.VOICE_CMD);
-				ChatFragment.handler.sendMessageDelayed(msg, 500);
+				ChatFragment.mHandler.sendMessageDelayed(msg, 500);
 			}
 		}
 	}

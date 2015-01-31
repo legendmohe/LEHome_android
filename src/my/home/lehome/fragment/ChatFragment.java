@@ -1,58 +1,34 @@
 package my.home.lehome.fragment;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.baidu.voicerecognition.android.VoiceRecognitionConfig;
-import com.baidu.voicerecognition.android.ui.BaiduASRDigitalDialog;
-import com.baidu.voicerecognition.android.ui.DialogRecognitionListener;
-
 import my.home.lehome.R;
 import my.home.lehome.activity.MainActivity;
-import my.home.lehome.activity.WakeupActivity;
 import my.home.lehome.adapter.ChatItemArrayAdapter;
 import my.home.lehome.adapter.ChatItemArrayAdapter.ResendButtonClickListener;
 import my.home.lehome.asynctask.LoadMoreChatItemAsyncTask;
 import my.home.lehome.asynctask.SendCommandAsyncTask;
 import my.home.lehome.helper.DBHelper;
 import my.home.lehome.helper.MessageHelper;
-import my.home.lehome.receiver.MediaButtonIntentReceiver;
 import my.home.lehome.util.Constants;
-import my.home.lehome.util.JsonParser;
 import my.home.lehome.view.SpeechDialog;
 import my.home.lehome.view.SpeechDialog.SpeechDialogResultListener;
-import my.home.lehome.view.SpeechDialog.State;
-import android.R.integer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Application;
-import android.bluetooth.BluetoothA2dp;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothHeadset;
-import android.bluetooth.BluetoothProfile;
-import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnDismissListener;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Point;
-import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.CheckBoxPreference;
 import android.preference.PreferenceManager;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -79,20 +55,13 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
-//import com.iflytek.cloud.speech.RecognizerResult;
-//import com.iflytek.cloud.speech.SpeechConstant;
-//import com.iflytek.cloud.speech.SpeechError;
-//import com.iflytek.cloud.speech.SpeechListener;
-//import com.iflytek.cloud.speech.SpeechUser;
-//import com.iflytek.cloud.ui.RecognizerDialog;
-//import com.iflytek.cloud.ui.RecognizerDialogListener;
+import com.baidu.voicerecognition.android.ui.BaiduASRDigitalDialog;
 
 import de.greenrobot.lehome.ChatItem;
 import de.greenrobot.lehome.Shortcut;
@@ -100,25 +69,36 @@ import de.greenrobot.lehome.Shortcut;
 public class ChatFragment extends Fragment implements SpeechDialogResultListener, ResendButtonClickListener {
 	public static final String TAG = ChatFragment.class.getName();
 	
+	/*
+	 * common UI
+	 */
 	private ChatItemArrayAdapter adapter;
 	private ProgressBar sendProgressBar;
 	private Button switchButton;
-	
 	private Toast mToast;
-	public static Handler handler;
-	public static int FLAG = 1;
-	public static int TOAST = 2;
-	public static int VOICE_CMD = 3;
-	private int topVisibleIndex;
-	private boolean keyboard_open = false;
-	private boolean inSpeechMode = false;
-	private OnGlobalLayoutListener keyboardListener;
-	private ListView cmdListview;
-	private AutoCompleteTextView sendCmdEdittext;
-	private ArrayAdapter<String> autoCompleteAdapter;
+	public static Handler mHandler;
+	public static final int FLAG = 1;
+	public static final int TOAST = 2;
+	public static final int VOICE_CMD = 3;
+	private int mNewMsgNum = 0;
+	private int mTopVisibleIndex;
+	private boolean mNeedShowUnread = false;
+	private boolean mScrollViewInButtom = false;
+	private boolean mKeyboard_open = false;
+	private boolean mInSpeechMode = false;
+	private OnGlobalLayoutListener mKeyboardListener;
+	private ListView mCmdListview;
+	private AutoCompleteTextView mSendCmdEdittext;
+	private ArrayAdapter<String> mAutoCompleteAdapter;
 	
-	private HashSet<String> autoCompleteHashSet = new HashSet<String>();
+	/*
+	 * history
+	 */
+	private HashSet<String> mAutoCompleteHashSet = new HashSet<String>();
 	
+	/*
+	 * speech
+	 */
 	private BaiduASRDigitalDialog mDialog;
 	SpeechDialog mSpeechDialog;
 	private boolean scriptInputMode;
@@ -126,6 +106,9 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 	private int mScreenWidth = 0;
 	private int mScreenHeight = 0;
 	
+	/*
+	 * constant
+	 */
 	public static final int CHATITEM_LOAD_LIMIT = 20;
 	public static final int CHATITEM_LOWEST_INDEX = 1;
 	public static final float DIALOG_CANCEL_Y_PERSENT = 0.57f;
@@ -139,7 +122,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
         	adapter = new ChatItemArrayAdapter(this.getActivity(), R.layout.chat_item);
         	adapter.setResendButtonClickListener(this);
 		}
-    	handler = new Handler(){ 
+    	mHandler = new Handler(){ 
             @Override 
             public void handleMessage(Message msg) { 
                 super.handleMessage(msg); 
@@ -148,7 +131,14 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
                 	if (newItem != null) {
                 		Log.d(TAG, "onSubscribalbeReceiveMsg : " + newItem.getContent());
                 		adapter.add(newItem);
-                		ChatFragment.this.scrollMyListViewToBottom();
+                		if (!mScrollViewInButtom) {
+							mNeedShowUnread = true;
+							mNewMsgNum++;
+							ChatFragment.this.showTip(mNewMsgNum + " new message");
+						}else {
+							mNewMsgNum = 0;
+	                		ChatFragment.this.scrollMyListViewToBottom();
+						}
 					}
                 }else if(msg.what == TOAST) {
                 	if(getActivity() != null) {
@@ -176,8 +166,8 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     }
     
     public static boolean sendMessage(Message msg) {
-		if (ChatFragment.handler != null) {
-	        ChatFragment.handler.sendMessage(msg);
+		if (ChatFragment.mHandler != null) {
+	        ChatFragment.mHandler.sendMessage(msg);
 	        return true;
 		}
 		return false;
@@ -189,31 +179,41 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.chat_fragment, container, false);
         
-        cmdListview = (ListView) rootView.findViewById(R.id.chat_list);
-        cmdListview.setAdapter(adapter);
+        mCmdListview = (ListView) rootView.findViewById(R.id.chat_list);
+        mCmdListview.setAdapter(adapter);
 
 		
-        cmdListview.setOnScrollListener(new OnScrollListener() {
+        mCmdListview.setOnScrollListener(new OnScrollListener() {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
-				if (keyboard_open && scrollState == SCROLL_STATE_TOUCH_SCROLL) {
+				if (mKeyboard_open && scrollState == SCROLL_STATE_TOUCH_SCROLL) {
 							InputMethodManager inputManager = 
 									(InputMethodManager) getActivity().
 									getSystemService(Context.INPUT_METHOD_SERVICE); 
 							inputManager.hideSoftInputFromWindow(
 									getActivity().getCurrentFocus().getWindowToken(),
 									InputMethodManager.HIDE_NOT_ALWAYS); 
-				}else if(scrollState == OnScrollListener.SCROLL_STATE_IDLE
-						&& topVisibleIndex == 0
-						&& adapter.getItem(0).getId() > CHATITEM_LOWEST_INDEX) {
-					new LoadMoreChatItemAsyncTask(ChatFragment.this).execute(CHATITEM_LOAD_LIMIT);
+				}else if(scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
+					if(mTopVisibleIndex == 0
+							&& adapter.getItem(0).getId() > CHATITEM_LOWEST_INDEX) {
+						new LoadMoreChatItemAsyncTask(ChatFragment.this).execute(CHATITEM_LOAD_LIMIT);
+					}
 				}
 			}
 			
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem,
 					int visibleItemCount, int totalItemCount) {
-				topVisibleIndex = firstVisibleItem;
+				mTopVisibleIndex = firstVisibleItem;
+				if (firstVisibleItem + visibleItemCount == totalItemCount) {
+					Log.d(TAG, "reach buttom");
+					mScrollViewInButtom = true;
+					if (mNeedShowUnread) {
+						mNeedShowUnread = false;
+					}
+				}else {
+					mScrollViewInButtom = false;
+				}
 			}
 		});
     	
@@ -223,7 +223,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 			
 			@Override
 			public void onClick(View v) {
-				sendCmdEdittext.setText("");
+				mSendCmdEdittext.setText("");
 			}
 		});
         
@@ -232,15 +232,15 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 			
 			@Override
 			public void onClick(View v) {
-				if (!inSpeechMode) {
+				if (!mInSpeechMode) {
 					Button switch_btn = (Button) getView().findViewById(R.id.switch_input_button);
 					switch_btn.setBackgroundResource(R.drawable.chatting_setmode_voice_btn);
 					getView().findViewById(R.id.speech_button).setVisibility(View.VISIBLE);
 					getView().findViewById(R.id.send_cmd_edittext).setVisibility(View.INVISIBLE);
-					inSpeechMode = true;
+					mInSpeechMode = true;
 					clearButton.setVisibility(View.GONE);
 					
-					if (keyboard_open) {
+					if (mKeyboard_open) {
 			    		InputMethodManager inputManager = 
 			    				(InputMethodManager) getActivity().
 			    				getSystemService(Context.INPUT_METHOD_SERVICE); 
@@ -253,7 +253,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 					switch_btn.setBackgroundResource(R.drawable.chatting_setmode_msg_btn);
 					getView().findViewById(R.id.speech_button).setVisibility(View.INVISIBLE);
 					getView().findViewById(R.id.send_cmd_edittext).setVisibility(View.VISIBLE);
-					inSpeechMode = false;
+					mInSpeechMode = false;
 					clearButton.setVisibility(View.VISIBLE);
 				}
 			}
@@ -301,17 +301,17 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 			}
 		});
         
-        sendCmdEdittext = (AutoCompleteTextView) rootView.findViewById(R.id.send_cmd_edittext);
-		sendCmdEdittext.setOnEditorActionListener(new OnEditorActionListener() {
+        mSendCmdEdittext = (AutoCompleteTextView) rootView.findViewById(R.id.send_cmd_edittext);
+		mSendCmdEdittext.setOnEditorActionListener(new OnEditorActionListener() {
 			  public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 			    if (actionId == EditorInfo.IME_ACTION_DONE) {
 			    	// Perform action on key press
-					String messageString = sendCmdEdittext.getText().toString();
+					String messageString = mSendCmdEdittext.getText().toString();
 					if (!messageString.trim().equals("")) {
 						MainActivity mainActivity = (MainActivity) getActivity();
 						new SendCommandAsyncTask(mainActivity, messageString).execute();
 						ChatFragment.this.addCmdHistory(messageString);
-						sendCmdEdittext.setText("");
+						mSendCmdEdittext.setText("");
 					}
 			      return true;
 			    } else {
@@ -320,7 +320,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 			  }
 
 			});
-		sendCmdEdittext.addTextChangedListener(new TextWatcher() {
+		mSendCmdEdittext.addTextChangedListener(new TextWatcher() {
 			
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -341,26 +341,26 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 			}
 		});
 		
-		keyboardListener = (new OnGlobalLayoutListener() {
+		mKeyboardListener = (new OnGlobalLayoutListener() {
     		@Override
     		public void onGlobalLayout() {
     			int heightDiff = getView().getRootView().getHeight() - getView().getHeight();
     			Log.v(TAG, "height" + String.valueOf(heightDiff));
     			if (heightDiff > 200) { // if more than 100 pixels, its probably a keyboard...
     				Log.v(TAG, "keyboard show.");
-    				if (!keyboard_open) {
+    				if (!mKeyboard_open) {
     					ChatFragment.this.scrollMyListViewToBottom();	
     				}
-    				keyboard_open = true;
-    			}else if(keyboard_open) {
-					keyboard_open = false;
-					sendCmdEdittext.clearFocus();
-					cmdListview.requestFocus();
+    				mKeyboard_open = true;
+    			}else if(mKeyboard_open) {
+					mKeyboard_open = false;
+					mSendCmdEdittext.clearFocus();
+					mCmdListview.requestFocus();
 					Log.d(TAG, "keyboard hide.");
     			}
     		}
     	});
-    	rootView.getViewTreeObserver().addOnGlobalLayoutListener(keyboardListener);
+    	rootView.getViewTreeObserver().addOnGlobalLayoutListener(mKeyboardListener);
         
         sendProgressBar = (ProgressBar) rootView.findViewById(R.id.send_msg_progressbar);
         sendProgressBar.setVisibility(View.INVISIBLE);
@@ -378,7 +378,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     public void onCreateContextMenu(ContextMenu menu, View v,
             ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        if (v.getId() == cmdListview.getId()) {
+        if (v.getId() == mCmdListview.getId()) {
         	AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
 	        MenuInflater inflater = getActivity().getMenuInflater();
 	        ChatItem chatItem = adapter.getItem(info.position);
@@ -431,8 +431,8 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
                   return true;
               case R.id.copy_to_input:
             	  if (!TextUtils.isEmpty(selectedString)) {
-            		  sendCmdEdittext.append(selectedString);
-            		  	if (inSpeechMode) {
+            		  mSendCmdEdittext.append(selectedString);
+            		  	if (mInSpeechMode) {
 			    			switchButton.performClick();
 						}
             	  }
@@ -445,7 +445,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
     	super.onActivityCreated(savedInstanceState);
-    	registerForContextMenu(cmdListview);
+    	registerForContextMenu(mCmdListview);
     	setHasOptionsMenu(true);
     	
     	Display display = getActivity().getWindowManager().getDefaultDisplay();
@@ -459,7 +459,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     @Override
     public void onDestroyView() {
     	super.onDestroyView();
-    	if (keyboard_open) {
+    	if (mKeyboard_open) {
     		InputMethodManager inputManager = 
     				(InputMethodManager) getActivity().
     				getSystemService(Context.INPUT_METHOD_SERVICE); 
@@ -477,7 +477,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 		}
     	
     	View rootView = getView();
-    	rootView.getViewTreeObserver().removeOnGlobalLayoutListener(keyboardListener);
+    	rootView.getViewTreeObserver().removeOnGlobalLayoutListener(mKeyboardListener);
     }
 
     @Override
@@ -511,7 +511,7 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     
     @Override
     public void onStart() {
-		sendCmdEdittext.setAdapter(this.setupAutoComplete(getActivity()));
+		mSendCmdEdittext.setAdapter(this.setupAutoComplete(getActivity()));
     	super.onStart();
     }
     
@@ -528,19 +528,19 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     	SharedPreferences pref = context.getSharedPreferences(Constants.PREF_NAME, 0);
     	Set<String> cmdSet = pref.getStringSet(Constants.CMD_HISTORY_PREF_NAME, new HashSet<String>());
     	
-    	autoCompleteHashSet.clear();
-    	autoCompleteHashSet.addAll(cmdSet);
-    	autoCompleteAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1);
-    	autoCompleteAdapter.addAll(cmdSet);
+    	mAutoCompleteHashSet.clear();
+    	mAutoCompleteHashSet.addAll(cmdSet);
+    	mAutoCompleteAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1);
+    	mAutoCompleteAdapter.addAll(cmdSet);
     	
     	Log.d(TAG, "setupAutoCompleteArrayAdapter: " + cmdSet.size());
-    	return autoCompleteAdapter;
+    	return mAutoCompleteAdapter;
     }
     
     private void addCmdHistory(String cmd) {
-    	if (!autoCompleteHashSet.contains(cmd)) {
-			autoCompleteHashSet.add(cmd);
-			autoCompleteAdapter.add(cmd);
+    	if (!mAutoCompleteHashSet.contains(cmd)) {
+			mAutoCompleteHashSet.add(cmd);
+			mAutoCompleteAdapter.add(cmd);
 			
 			Log.d(TAG, "addCmdHistory: " + cmd);
 		}
@@ -549,10 +549,10 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
     private void saveCmdHistory(Context context) {
     	SharedPreferences pref = context.getSharedPreferences(Constants.PREF_NAME, 0);
     	SharedPreferences.Editor editor = pref.edit();
-    	editor.putStringSet(Constants.CMD_HISTORY_PREF_NAME, autoCompleteHashSet);
+    	editor.putStringSet(Constants.CMD_HISTORY_PREF_NAME, mAutoCompleteHashSet);
     	editor.commit();
     	
-    	Log.d(TAG, "saveCmdHistory: " + autoCompleteHashSet.size());
+    	Log.d(TAG, "saveCmdHistory: " + mAutoCompleteHashSet.size());
     }
     
     public void resetDatas() {
@@ -573,11 +573,11 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 	}
     
     public void scrollMyListViewToBottom() {
-    	cmdListview.post(new Runnable() {
+    	mCmdListview.post(new Runnable() {
             @Override
             public void run() {
                 // Select the last row so it will scroll into view...
-            	cmdListview.setSelection(adapter.getCount() - 1);
+            	mCmdListview.setSelection(adapter.getCount() - 1);
             }
         });
     }
@@ -792,7 +792,12 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 	public void startRecognize(Context context) {
     	Log.d(TAG, "show mSpeechDialog");
     	
+		SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		boolean auto_sco = mySharedPreferences.getBoolean("pref_auto_connect_sco", true);
+		Log.d(TAG, "auto_sco: " + auto_sco);
+    	
     	inRecogintion = true;
+    	mSpeechDialog.setUserVisibleHint(auto_sco);
     	mSpeechDialog.setup(context, ChatFragment.this);
     	mSpeechDialog.show(getFragmentManager(), TAG);
 	}
@@ -831,8 +836,8 @@ public class ChatFragment extends Fragment implements SpeechDialogResultListener
 		    	alert.setNeutralButton(getResources().getString(R.string.com_send_to_edittext)
 		    							, new DialogInterface.OnClickListener() {
 			    	public void onClick(DialogInterface dialog, int whichButton) {
-			    		sendCmdEdittext.append(msgString);
-			    		if (inSpeechMode) {
+			    		mSendCmdEdittext.append(msgString);
+			    		if (mInSpeechMode) {
 			    			switchButton.performClick();
 						}
 			    		inRecogintion = false;

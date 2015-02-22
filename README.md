@@ -1,4 +1,4 @@
-### Deprecated, move to (https://github.com/legendmohe/LEHomeMobie_android)[https://github.com/legendmohe/LEHomeMobie_android]
+### Deprecated, move to [LEHomeMobie_android](https://github.com/legendmohe/LEHomeMobie_android)
 
 LEHome_android
 ==============

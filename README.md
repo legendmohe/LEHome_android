@@ -1,3 +1,5 @@
+### Deprecated, move to (https://github.com/legendmohe/LEHomeMobie_android)[https://github.com/legendmohe/LEHomeMobie_android]
+
 LEHome_android
 ==============
 
